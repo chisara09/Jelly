@@ -6,13 +6,13 @@ A simple iPhone app for people who play one-on-one basketball. Players can find 
 ---
 
 ## 2. Main Goals
-1. Show a fair, easy-to-read leaderboard.  
-2. Let users find and challenge nearby players.  
-3. Make it simple to set up a game: time, place, rules.  
-4. Record the final score with proof (both players confirm).  
-5. Track player stats over time (wins, losses, streaks).  
-6. Help users chat and plan games safely in-app.  
-7. Keep data even if the app closes and comes back later.  
+1. Show a fair, easy-to-read leaderboard.
+2. Let users find and challenge nearby players.
+3. Make it simple to set up a game: time, place, rules.
+4. Record the final score with proof (both players confirm).
+5. Track player stats over time (wins, losses, streaks).
+6. Help users chat and plan games safely in-app.
+7. Keep data even if the app closes and comes back later.
 
 ---
 
@@ -36,99 +36,133 @@ A simple iPhone app for people who play one-on-one basketball. Players can find 
 ---
 
 ## 4. Features (F-001, F-002, …)
-
 - **F-001: Sign Up / Login**  
-  - **What it does:** Lets a user create an account (email + password) or sign in.  
-  - **When it appears:** On first launch or when logged out.  
-  - **If something goes wrong:** Show “Check your email or password.” Offer “Try again.”  
+  - Lets a user create an account or sign in.  
+  - Appears on first launch or when logged out.  
+  - If wrong: Show “Check your email or password.”  
 
 - **F-002: Profile**  
-  - **What it does:** Shows name, photo (optional), home court, bio, record, streak.  
-  - **When it appears:** From the tab bar (“Profile”) or after sign up.  
-  - **If something goes wrong:** Show “Couldn’t load profile.” Add a “Reload” button.  
+  - Shows name, photo, home court, bio, record, streak.  
+  - Appears on Profile tab.  
+  - If wrong: Show “Couldn’t load profile.”  
 
 - **F-003: Location + Nearby Players**  
-  - **What it does:** Uses location to list players and courts near you.  
-  - **When it appears:** On the “Find Players” tab.  
-  - **If something goes wrong:** Show “Turn on Location in Settings.” Allow manual court search.  
+  - Lists players and courts near you.  
+  - Appears on “Find Players” tab.  
+  - If wrong: Show “Turn on Location.”  
 
 - **F-004: Search & Filters**  
-  - **What it does:** Search players by name/court; filter by skill or distance.  
-  - **When it appears:** On “Find Players.”  
-  - **If something goes wrong:** Show “No matches found.” Suggest clearing filters.  
+  - Search players by name/court; filter by skill or distance.  
+  - Appears on “Find Players.”  
+  - If wrong: Show “No matches found.”  
 
 - **F-005: Create Challenge**  
-  - **What it does:** Send a challenge with court, date, time, and rules.  
-  - **When it appears:** From a player profile or “New Game” button.  
-  - **If something goes wrong:** Show “Couldn’t send. Try again.” Keep the form filled.  
+  - Send a challenge with court, date, rules.  
+  - Appears on a player profile or “New Game.”  
+  - If wrong: Show “Couldn’t send.”  
 
 - **F-006: Game Chat**  
-  - **What it does:** 1-to-1 messages for a planned game.  
-  - **When it appears:** After a challenge is created.  
-  - **If something goes wrong:** Show “Message not sent.” Allow resend.  
+  - Private messages for a planned game.  
+  - Appears after a challenge is created.  
+  - If wrong: Show “Message not sent.”  
 
 - **F-007: Reminders & Notifications**  
-  - **What it does:** Notifies users of new challenges, chat messages, and upcoming games.  
-  - **When it appears:** Background alerts and in-app banners.  
-  - **If something goes wrong:** Show “Notifications are off.” Link to Settings.  
+  - Alerts for new challenges, chat, game times.  
+  - Appears as in-app banners/alerts.  
+  - If wrong: Show “Notifications off.”  
 
 - **F-008: Record Score**  
-  - **What it does:** After the game, either player enters final score and winner.  
-  - **When it appears:** On the game details screen after game time passes.  
-  - **If something goes wrong:** Show “Couldn’t save score.” Keep inputs for retry.  
+  - Enter final score and winner.  
+  - Appears after game time.  
+  - If wrong: Show “Couldn’t save score.”  
 
 - **F-009: Score Confirmation**  
-  - **What it does:** Other player confirms or disputes result.  
-  - **When it appears:** After a score is submitted.  
-  - **If something goes wrong:** Show “Couldn’t send confirmation.” Retry later.  
+  - Opponent confirms or disputes result.  
+  - Appears after score is submitted.  
+  - If wrong: Show “Couldn’t send confirmation.”  
 
 - **F-010: Dispute Flow**  
-  - **What it does:** If scores don’t match, re-enter or mark as “No result.”  
-  - **When it appears:** When there’s a mismatch.  
-  - **If something goes wrong:** Show “Couldn’t resolve.” Escalate to “No result.”  
+  - If scores don’t match, mark “No result.”  
+  - Appears on mismatch.  
+  - If wrong: Show “Couldn’t resolve.”  
 
 - **F-011: Leaderboard**  
-  - **What it does:** Ranks players by rating, wins, or streak.  
-  - **When it appears:** On the “Leaderboard” tab.  
-  - **If something goes wrong:** Show “Leaderboard offline.” Show last known list.  
+  - Ranks players by wins, rating, streak.  
+  - Appears on Leaderboard tab.  
+  - If wrong: Show “Leaderboard offline.”  
 
 - **F-012: My Stats**  
-  - **What it does:** Shows personal record, streak, recent games.  
-  - **When it appears:** On “Profile” and “Home.”  
-  - **If something goes wrong:** Show “Stats not available.” Try again.  
+  - Shows personal record, streak, recent games.  
+  - Appears on Profile and Home.  
+  - If wrong: Show “Stats not available.”  
 
 - **F-013: Safety Tools**  
-  - **What it does:** Block/report users. Hides chats/challenges from blocked users.  
-  - **When it appears:** In chat and on profiles.  
-  - **If something goes wrong:** Show “Couldn’t update safety setting.”  
+  - Block/report users.  
+  - Appears in chat and profiles.  
+  - If wrong: Show “Couldn’t update.”  
 
 - **F-014: Settings**  
-  - **What it does:** Edit account, notifications, dark mode, sign out, delete account.  
-  - **When it appears:** From “Profile” gear icon.  
-  - **If something goes wrong:** Show “Save failed.” Keep old settings.  
+  - Edit account, notifications, dark mode.  
+  - Appears on Profile gear icon.  
+  - If wrong: Show “Save failed.”  
 
 ---
 
 ## 5. Screens (S-001, S-002, …)
+- **S-001: Welcome / Login** – First screen with “Sign Up,” “Log In.”  
+- **S-002: Sign Up** – Form with name, email, password.  
+- **S-003: Home** – Quick stats, upcoming games, “Create Challenge.”  
+- **S-004: Find Players** – Map/list, search, filters, player cards.  
+- **S-005: Player Profile (Other User)** – Shows bio, record, “Challenge” button.  
+- **S-006: New Challenge** – Court, date, rules, “Send.”  
+- **S-007: Game Details** – Opponent, court, date/time, chat, “Record Score.”  
+- **S-008: Chat** – Messages, input box, block/report.  
+- **S-009: Record Score** – Fields for final score and winner.  
+- **S-010: Confirm Score** – Result with “Confirm” or “Dispute.”  
+- **S-011: Leaderboard** – Ranked list with tabs for rating, wins, streak.  
+- **S-012: My Profile** – My photo, record, streak, recent games.  
+- **S-013: Settings** – Notifications, dark mode, account controls.  
 
-- **S-001: Welcome / Login**  
-  - **What’s on it:** App name, logo, “Sign Up,” “Log In.”  
-  - **How to get here:** First open or after sign out.  
+---
 
-- **S-002: Sign Up**  
-  - **What’s on it:** Name, email, password, “Create Account.”  
-  - **How to get here:** Tap “Sign Up” on S-001.  
+## 6. Data (D-001, D-002, …)
+- **D-001: User Account** – email, password, created date.  
+- **D-002: Player Profile** – name, photo, bio, home court.  
+- **D-003: Location** – last known city/coordinates.  
+- **D-004: Court List** – courts with name, address, map pin.  
+- **D-005: Game** – opponent IDs, court, date/time, rules, status.  
+- **D-006: Score** – winner, loser, points, confirm/dispute.  
+- **D-007: Stats** – wins, losses, rating, streak, history.  
+- **D-008: Leaderboard Snapshot** – cached top players.  
+- **D-009: Messages** – chat messages (text + time).  
+- **D-010: Safety** – blocked users, reports.  
+- **D-011: Settings** – notifications, dark mode, units.  
 
-- **S-003: Home**  
-  - **What’s on it:** Quick stats, upcoming games, “Create Challenge” button.  
-  - **How to get here:** After login (tab 1).  
+---
 
-- **S-004: Find Players**  
-  - **What’s on it:** Map/list, search bar, filters, player cards.  
-  - **How to get here:** Tab 2.  
+## 7. Extra Details
+1. Needs internet for login, finding players, saving scores.  
+2. Offline: show cached leaderboard, profile.  
+3. Permissions: Location, Notifications, optional photo upload.  
+4. Dark Mode: Yes, match system setting + manual toggle.  
+5. Safety: Block/report, filter bad words.  
+6. Fair play: Both players confirm score; disputes = “No result.”  
+7. First version: iPhone only.  
 
-- **S-005: Player Profile (Other User)**  
-  - **What’s on it:** Photo, bio, record, “Challenge,” “Message.”  
-  - **How to get here:** Tap a player from S-004.  
+---
 
-- **S-006:
+## 8. Build Steps (B-001, B-002, …)
+- **B-001:** Set up project. Build S-001, S-002 with F-001 (Login/Sign Up).  
+- **B-002:** Build S-003 (Home). Add D-005 placeholder.  
+- **B-003:** Build S-012 (My Profile) with F-002 (Profile). Save D-002.  
+- **B-004:** Add Location (F-003). Build S-004 (Find Players). Save D-003/D-004.  
+- **B-005:** Build S-005 + S-006 for challenges (F-005). Save D-005.  
+- **B-006:** Build S-007 + S-008 with chat (F-006). Save D-009.  
+- **B-007:** Add notifications (F-007).  
+- **B-008:** Build S-009 + S-010 with scores (F-008, F-009, F-010). Save D-006.  
+- **B-009:** Build leaderboard (S-011) with F-011. Save D-008.  
+- **B-010:** Add S-013 (Settings) with F-014 + safety tools F-013. Save D-010/D-011.  
+- **B-011:** Add error states for all features.  
+- **B-012:** Test: two users → challenge → chat → record score → confirm → leaderboard update.  
+
+---
