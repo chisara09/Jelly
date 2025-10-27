@@ -23,10 +23,23 @@ struct FindPlayersView: View {
         Court(name: "Harlem Courts", address: "Harlem, NYC", latitude: 40.8116, longitude: -73.9465)
     ]
     
+    // Mock nearby players
+    @State private var players: [NearbyPlayer] = [
+        NearbyPlayer(name: "Marcus Johnson", skillLevel: "Advanced", homeCourt: "Central Park", distanceMiles: 2.3),
+        NearbyPlayer(name: "Jamal Smith", skillLevel: "Intermediate", homeCourt: "Brooklyn Heights", distanceMiles: 4.1),
+        NearbyPlayer(name: "Eric Lee", skillLevel: "Beginner", homeCourt: "Harlem Courts", distanceMiles: 1.2)
+    ]
+    
     var filteredCourts: [Court] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if query.isEmpty { return courts }
         return courts.filter { $0.name.lowercased().contains(query) || $0.address.lowercased().contains(query) }
+    }
+    
+    var filteredPlayers: [NearbyPlayer] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if query.isEmpty { return players }
+        return players.filter { $0.name.lowercased().contains(query) || $0.homeCourt.lowercased().contains(query) }
     }
     
     var body: some View {
@@ -65,6 +78,34 @@ struct FindPlayersView: View {
                 }
                 
                 List {
+                    Section(header: Text("Players Near You")) {
+                        ForEach(filteredPlayers) { player in
+                            NavigationLink(value: player) {
+                                HStack {
+                                    ZStack {
+                                        Circle()
+                                            .fill(LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                            .frame(width: 36, height: 36)
+                                        Text(initials(from: player.name))
+                                            .font(.caption)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.white)
+                                    }
+                                    
+                                    VStack(alignment: .leading) {
+                                        Text(player.name)
+                                        Text("\(player.skillLevel) • \(String(format: "%.1f mi", player.distanceMiles))")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                    }
+                    
                     Section(header: Text("Courts Near You")) {
                         ForEach(filteredCourts) { court in
                             VStack(alignment: .leading, spacing: 4) {
@@ -80,7 +121,7 @@ struct FindPlayersView: View {
                 }
                 .listStyle(InsetGroupedListStyle())
             }
-            .searchable(text: $searchText, prompt: "Search courts or parks")
+            .searchable(text: $searchText, prompt: "Search players, courts")
             .navigationTitle("Find Players")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -92,7 +133,17 @@ struct FindPlayersView: View {
             .onAppear {
                 locationManager.requestWhenInUseAuthorization()
             }
+            .navigationDestination(for: NearbyPlayer.self) { player in
+                OtherPlayerProfileView(player: player)
+                    .environmentObject(GameManager())
+            }
         }
+    }
+    
+    private func initials(from name: String) -> String {
+        let parts = name.split(separator: " ")
+        if parts.count >= 2 { return String(parts[0].prefix(1) + parts[1].prefix(1)).uppercased() }
+        return String(name.prefix(2)).uppercased()
     }
 }
 
