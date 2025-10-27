@@ -19,6 +19,11 @@ struct ContentView: View {
                             Label("Home", systemImage: "house.fill")
                         }
                     
+                    FindPlayersView()
+                        .tabItem {
+                            Label("Find", systemImage: "map.fill")
+                        }
+                    
                     ProfileView()
                         .tabItem {
                             Label("Profile", systemImage: "person.fill")
