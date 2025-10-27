@@ -77,7 +77,10 @@ struct HomeView: View {
                             .padding(.horizontal)
                             
                             ForEach(upcomingGames.prefix(2)) { game in
-                                UpcomingGameCard(game: game)
+                                NavigationLink(value: game) {
+                                    UpcomingGameCard(game: game)
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                     } else {
@@ -123,6 +126,10 @@ struct HomeView: View {
             .navigationTitle("Home")
             .sheet(isPresented: $showCreateChallenge) {
                 CreateChallengeView()
+                    .environmentObject(gameManager)
+            }
+            .navigationDestination(for: Game.self) { game in
+                GameDetailsView(game: game)
                     .environmentObject(gameManager)
             }
         }
@@ -207,7 +214,6 @@ struct UpcomingGameCard: View {
         .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 3)
-        .padding(.horizontal)
     }
 }
 

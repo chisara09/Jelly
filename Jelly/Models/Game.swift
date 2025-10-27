@@ -8,7 +8,7 @@
 import Foundation
 
 // D-005: Game – opponent IDs, court, date/time, rules, status.
-struct Game: Identifiable, Codable {
+struct Game: Identifiable, Codable, Hashable {
     let id: UUID
     let challengerID: UUID  // Who sent the challenge
     let opponentID: UUID    // Who is being challenged
@@ -25,7 +25,7 @@ struct Game: Identifiable, Codable {
     var isConfirmed: Bool
     var createdAt: Date
     
-    enum GameStatus: String, Codable {
+    enum GameStatus: String, Codable, Hashable {
         case pending    // Challenge sent, waiting for acceptance
         case accepted   // Accepted, scheduled
         case completed  // Game finished, scores recorded
