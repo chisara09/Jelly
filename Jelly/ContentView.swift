@@ -13,8 +13,18 @@ struct ContentView: View {
     var body: some View {
         Group {
             if authManager.isAuthenticated {
-                HomeView()
-                    .environmentObject(authManager)
+                TabView {
+                    HomeView()
+                        .tabItem {
+                            Label("Home", systemImage: "house.fill")
+                        }
+                    
+                    ProfileView()
+                        .tabItem {
+                            Label("Profile", systemImage: "person.fill")
+                        }
+                }
+                .environmentObject(authManager)
             } else {
                 WelcomeView()
                     .environmentObject(authManager)
