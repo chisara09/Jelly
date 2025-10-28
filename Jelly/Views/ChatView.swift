@@ -21,6 +21,7 @@ struct ChatView: View {
     @State private var showReportSheet = false
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var showChatError = false
     
     // Mock current user ID - in production this would come from auth
     private let currentUserID = UUID()
@@ -140,6 +141,16 @@ struct ChatView: View {
             Button("OK") { }
         } message: {
             Text(errorMessage)
+        }
+        .alert("Error", isPresented: $showChatError) {
+            Button("OK") { chatManager.errorMessage = nil }
+        } message: {
+            Text(chatManager.errorMessage ?? "Message not sent.")
+        }
+        .onChange(of: chatManager.errorMessage) { _ in
+            if chatManager.errorMessage != nil {
+                showChatError = true
+            }
         }
     }
     

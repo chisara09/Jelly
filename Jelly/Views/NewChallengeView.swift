@@ -80,7 +80,10 @@ struct NewChallengeView: View {
                 rules: rules
             )
             
-            if newGame == nil {
+            if let err = gameManager.errorMessage {
+                errorMessage = err
+                isSending = false
+            } else if newGame == nil {
                 errorMessage = "Couldn't send."
                 isSending = false
             } else {

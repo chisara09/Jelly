@@ -12,6 +12,7 @@ struct ConfirmScoreView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var gameManager: GameManager
     let game: Game
+    @State private var showError = false
     
     var body: some View {
         NavigationStack {
@@ -68,17 +69,31 @@ struct ConfirmScoreView: View {
                     Button("Close") { dismiss() }
                 }
             }
+            .alert("Error", isPresented: $showError) {
+                Button("OK") { gameManager.errorMessage = nil }
+            } message: {
+                Text(gameManager.errorMessage ?? "Error")
+            }
+            .onChange(of: gameManager.errorMessage) { _ in
+                if gameManager.errorMessage != nil {
+                    showError = true
+                }
+            }
         }
     }
     
     private func confirm() {
         gameManager.confirmScore(gameID: game.id)
-        dismiss()
+        if gameManager.errorMessage == nil {
+            dismiss()
+        }
     }
     
     private func dispute() {
         gameManager.disputeScore(gameID: game.id)
-        dismiss()
+        if gameManager.errorMessage == nil {
+            dismiss()
+        }
     }
 }
 

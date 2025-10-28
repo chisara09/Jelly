@@ -13,6 +13,8 @@ struct ProfileView: View {
     @StateObject private var gameManager = GameManager()
     @State private var showSettings = false
     @State private var profile: PlayerProfile
+    @State private var showProfileError = false
+    @State private var isProfileLoading = false
     
     // Mock stats
     @State private var stats = PlayerStats(
@@ -37,8 +39,9 @@ struct ProfileView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
+            ZStack {
+                ScrollView {
+                    VStack(spacing: 0) {
                     // Profile Header
                     VStack(spacing: 16) {
                         // Profile Photo
@@ -124,9 +127,9 @@ struct ProfileView: View {
                     Divider()
                     
                     // Recent Games
-                    let completedGames = gameManager.getCompletedGames()
-                    
-                    if !completedGames.isEmpty {
+                    if !gameManager.getCompletedGames().isEmpty {
+                        let completedGames = gameManager.getCompletedGames()
+                        
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Recent Games")
                                 .font(.headline)
@@ -154,6 +157,17 @@ struct ProfileView: View {
                         .padding(.bottom, 16)
                         .background(Color(.systemBackground))
                     }
+                    }
+                }
+            }
+            .overlay {
+                if isProfileLoading {
+                    ZStack {
+                        Color.black.opacity(0.2)
+                            .ignoresSafeArea()
+                        ProgressView()
+                            .scaleEffect(1.5)
+                    }
                 }
             }
             .navigationTitle("Profile")
@@ -173,16 +187,36 @@ struct ProfileView: View {
                     .environmentObject(authManager)
             }
             .onAppear {
-                // Load profile data if available
-                if let user = authManager.currentUser {
-                    profile = PlayerProfile(
-                        name: user.name,
-                        bio: profile.bio,
-                        homeCourt: profile.homeCourt,
-                        email: user.email
-                    )
-                }
+                loadProfile()
             }
+            .alert("Error", isPresented: $showProfileError) {
+                Button("OK") { }
+            } message: {
+                Text("Couldn't load profile.")
+            }
+        }
+    }
+    
+    private func loadProfile() {
+        isProfileLoading = true
+        
+        // Simulate loading with potential failure
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            // Simulate potential failure (5% chance)
+            let shouldFail = arc4random_uniform(100) < 5
+            
+            if shouldFail {
+                showProfileError = true
+            } else if let user = authManager.currentUser {
+                profile = PlayerProfile(
+                    name: user.name,
+                    bio: profile.bio,
+                    homeCourt: profile.homeCourt,
+                    email: user.email
+                )
+            }
+            
+            isProfileLoading = false
         }
     }
     
@@ -606,4 +640,3 @@ struct ReportHistoryView: View {
     ProfileView()
         .environmentObject(AuthenticationManager())
 }
-

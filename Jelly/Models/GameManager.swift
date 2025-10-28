@@ -12,6 +12,7 @@ import Combine
 class GameManager: ObservableObject {
     @Published var games: [Game] = []
     @Published var isLoading = false
+    @Published var errorMessage: String?
     
     // Mock data for development
     private let mockGames: [Game] = [
@@ -55,6 +56,14 @@ class GameManager: ObservableObject {
     }
     
     func createChallenge(to opponentID: UUID, opponentName: String, courtName: String, courtAddress: String, scheduledDate: Date, rules: String) -> Game? {
+        errorMessage = nil
+        
+        // Validate inputs
+        guard !courtName.isEmpty, !courtAddress.isEmpty, !rules.isEmpty else {
+            errorMessage = "Couldn't send."
+            return nil
+        }
+        
         // In production, this would make an API call
         // For now, create a local game
         let newGame = Game(
@@ -79,27 +88,79 @@ class GameManager: ObservableObject {
     }
     
     func recordScore(gameID: UUID, winnerID: UUID, loserID: UUID, winnerScore: Int, loserScore: Int) {
-        if let index = games.firstIndex(where: { $0.id == gameID }) {
-            games[index].status = .completed
-            games[index].winnerID = winnerID
-            games[index].loserID = loserID
-            games[index].challengerScore = winnerID == games[index].challengerID ? winnerScore : loserScore
-            games[index].opponentScore = winnerID == games[index].opponentID ? winnerScore : loserScore
-            games[index].isConfirmed = false
+        errorMessage = nil
+        
+        guard let index = games.firstIndex(where: { $0.id == gameID }) else {
+            errorMessage = "Couldn't save score."
+            return
         }
+        
+        // In production, make API call
+        // Simulate potential failure
+        if let error = tryRecordScore() {
+            errorMessage = "Couldn't save score."
+            return
+        }
+        
+        games[index].status = .completed
+        games[index].winnerID = winnerID
+        games[index].loserID = loserID
+        games[index].challengerScore = winnerID == games[index].challengerID ? winnerScore : loserScore
+        games[index].opponentScore = winnerID == games[index].opponentID ? winnerScore : loserScore
+        games[index].isConfirmed = false
     }
     
     func confirmScore(gameID: UUID) {
-        if let index = games.firstIndex(where: { $0.id == gameID }) {
-            games[index].isConfirmed = true
+        errorMessage = nil
+        
+        guard let index = games.firstIndex(where: { $0.id == gameID }) else {
+            errorMessage = "Couldn't send confirmation."
+            return
         }
+        
+        // In production, make API call
+        // Simulate potential failure
+        if let error = tryConfirmScore() {
+            errorMessage = "Couldn't send confirmation."
+            return
+        }
+        
+        games[index].isConfirmed = true
     }
 
     func disputeScore(gameID: UUID) {
-        if let index = games.firstIndex(where: { $0.id == gameID }) {
-            games[index].status = .disputed
-            games[index].isConfirmed = false
+        errorMessage = nil
+        
+        guard let index = games.firstIndex(where: { $0.id == gameID }) else {
+            errorMessage = "Couldn't resolve."
+            return
         }
+        
+        // In production, make API call
+        // Simulate potential failure
+        if let error = tryDisputeScore() {
+            errorMessage = "Couldn't resolve."
+            return
+        }
+        
+        games[index].status = .disputed
+        games[index].isConfirmed = false
+    }
+    
+    // Simulate network failures for demo purposes
+    private func tryRecordScore() -> String? {
+        let shouldFail = arc4random_uniform(100) < 5 // 5% chance
+        return shouldFail ? "Network error" : nil
+    }
+    
+    private func tryConfirmScore() -> String? {
+        let shouldFail = arc4random_uniform(100) < 5 // 5% chance
+        return shouldFail ? "Network error" : nil
+    }
+    
+    private func tryDisputeScore() -> String? {
+        let shouldFail = arc4random_uniform(100) < 5 // 5% chance
+        return shouldFail ? "Network error" : nil
     }
 }
 

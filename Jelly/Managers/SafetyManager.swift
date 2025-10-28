@@ -31,14 +31,18 @@ class SafetyManager: ObservableObject {
         }
         
         blockedUsers.append(userID)
-        saveData()
+        
+        // Try to save
+        if !saveData() {
+            return "Couldn't update."
+        }
         
         return nil // No error
     }
     
     func unblockUser(_ userID: UUID) {
         blockedUsers.removeAll(where: { $0 == userID })
-        saveData()
+        _ = saveData()
     }
     
     func isBlocked(_ userID: UUID) -> Bool {
@@ -53,7 +57,11 @@ class SafetyManager: ObservableObject {
         }
         
         reportedUsers.append(userID)
-        saveData()
+        
+        // Try to save
+        if !saveData() {
+            return "Couldn't update."
+        }
         
         // In production, this would send to backend
         print("Reported user \(userID) for reason: \(reason)")
@@ -104,25 +112,22 @@ class SafetyManager: ObservableObject {
         }
     }
     
-    private func saveData() {
+    private func saveData() -> Bool {
         // Save blocked users
         if let data = try? JSONEncoder().encode(blockedUsers) {
             UserDefaults.standard.set(data, forKey: blockedUsersKey)
+        } else {
+            return false
         }
         
         // Save reported users
         if let data = try? JSONEncoder().encode(reportedUsers) {
             UserDefaults.standard.set(data, forKey: reportedUsersKey)
+        } else {
+            return false
         }
-    }
-    
-    // MARK: - Error Handling
-    
-    var errorMessage: String? {
-        if blockedUsers.isEmpty && reportedUsers.isEmpty {
-            return nil
-        }
-        return "Couldn't update."
+        
+        return true
     }
 }
 

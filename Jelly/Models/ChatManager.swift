@@ -12,6 +12,7 @@ import Combine
 class ChatManager: ObservableObject {
     @Published var messages: [Message] = []
     @Published var isLoading = false
+    @Published var errorMessage: String?
     
     // Mock data for development
     private var mockMessages: [Message] = []
@@ -27,8 +28,11 @@ class ChatManager: ObservableObject {
     
     func sendMessage(gameID: UUID, senderID: UUID, senderName: String, text: String) {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            errorMessage = "Message not sent."
             return
         }
+        
+        errorMessage = nil
         
         let newMessage = Message(
             gameID: gameID,
@@ -40,7 +44,19 @@ class ChatManager: ObservableObject {
         messages.append(newMessage)
         
         // In production, this would make an API call
-        // saveMessage(newMessage)
+        // For demo purposes, we'll simulate a potential error
+        // In a real implementation, you'd handle API errors here
+        if let error = trySaveMessage(newMessage) {
+            errorMessage = "Message not sent."
+            messages.removeLast()
+        }
+    }
+    
+    private func trySaveMessage(_ message: Message) -> String? {
+        // Simulate network error occasionally for demo purposes
+        // In production, this would be a real API call
+        let shouldFail = arc4random_uniform(100) < 10 // 10% chance of failure
+        return shouldFail ? "Network error" : nil
     }
     
     func deleteMessage(_ messageID: UUID) {

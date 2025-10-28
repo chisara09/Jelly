@@ -12,6 +12,8 @@ struct HomeView: View {
     @EnvironmentObject var authManager: AuthenticationManager
     @StateObject private var gameManager = GameManager()
     @State private var showCreateChallenge = false
+    @State private var showStatsError = false
+    @State private var isLoadingStats = false
     
     // Mock stats - in production this would come from a StatsManager
     @State private var stats = PlayerStats(
@@ -128,10 +130,34 @@ struct HomeView: View {
                 CreateChallengeView()
                     .environmentObject(gameManager)
             }
+            .alert("Error", isPresented: $showStatsError) {
+                Button("OK") { }
+            } message: {
+                Text("Stats not available.")
+            }
             .navigationDestination(for: Game.self) { game in
                 GameDetailsView(game: game)
                     .environmentObject(gameManager)
             }
+            .onAppear {
+                loadStats()
+            }
+        }
+    }
+    
+    private func loadStats() {
+        isLoadingStats = true
+        
+        // Simulate loading stats with potential failure
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            // Simulate potential failure (5% chance)
+            let shouldFail = arc4random_uniform(100) < 5
+            
+            if shouldFail {
+                showStatsError = true
+            }
+            
+            isLoadingStats = false
         }
     }
 }

@@ -79,43 +79,70 @@ struct FindPlayersView: View {
                 
                 List {
                     Section(header: Text("Players Near You")) {
-                        ForEach(filteredPlayers) { player in
-                            NavigationLink(value: player) {
-                                HStack {
-                                    ZStack {
-                                        Circle()
-                                            .fill(LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                            .frame(width: 36, height: 36)
-                                        Text(initials(from: player.name))
-                                            .font(.caption)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.white)
-                                    }
-                                    
-                                    VStack(alignment: .leading) {
-                                        Text(player.name)
-                                        Text("\(player.skillLevel) • \(String(format: "%.1f mi", player.distanceMiles))")
-                                            .font(.caption)
+                        if filteredPlayers.isEmpty && !searchText.isEmpty {
+                            HStack {
+                                Spacer()
+                                VStack(spacing: 8) {
+                                    Image(systemName: "magnifyingglass")
+                                        .font(.title2)
+                                        .foregroundColor(.secondary)
+                                    Text("No matches found.")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.vertical, 20)
+                                Spacer()
+                            }
+                        } else {
+                            ForEach(filteredPlayers) { player in
+                                NavigationLink(value: player) {
+                                    HStack {
+                                        ZStack {
+                                            Circle()
+                                                .fill(LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                                .frame(width: 36, height: 36)
+                                            Text(initials(from: player.name))
+                                                .font(.caption)
+                                                .fontWeight(.bold)
+                                                .foregroundColor(.white)
+                                        }
+                                        
+                                        VStack(alignment: .leading) {
+                                            Text(player.name)
+                                            Text("\(player.skillLevel) • \(String(format: "%.1f mi", player.distanceMiles))")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
                                             .foregroundColor(.secondary)
                                     }
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(.secondary)
                                 }
                             }
                         }
                     }
                     
                     Section(header: Text("Courts Near You")) {
-                        ForEach(filteredCourts) { court in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(court.name)
-                                    .font(.headline)
-                                Text(court.address)
+                        if filteredCourts.isEmpty && !searchText.isEmpty {
+                            HStack {
+                                Spacer()
+                                Text("No matches found.")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
+                                    .padding(.vertical, 10)
+                                Spacer()
                             }
-                            .padding(.vertical, 4)
+                        } else {
+                            ForEach(filteredCourts) { court in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(court.name)
+                                        .font(.headline)
+                                    Text(court.address)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.vertical, 4)
+                            }
                         }
                     }
                 }

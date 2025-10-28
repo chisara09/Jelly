@@ -369,8 +369,13 @@ struct RecordScoreView: View {
                 loserScore: loserScore
             )
             
-            isRecording = false
-            dismiss()
+            if let err = gameManager.errorMessage {
+                errorMessage = err
+                isRecording = false
+            } else {
+                isRecording = false
+                dismiss()
+            }
         }
     }
 }
