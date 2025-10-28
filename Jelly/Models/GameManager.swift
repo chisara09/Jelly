@@ -83,14 +83,22 @@ class GameManager: ObservableObject {
             games[index].status = .completed
             games[index].winnerID = winnerID
             games[index].loserID = loserID
-            games[index].challengerScore = winnerScore
-            games[index].opponentScore = loserScore
+            games[index].challengerScore = winnerID == games[index].challengerID ? winnerScore : loserScore
+            games[index].opponentScore = winnerID == games[index].opponentID ? winnerScore : loserScore
+            games[index].isConfirmed = false
         }
     }
     
     func confirmScore(gameID: UUID) {
         if let index = games.firstIndex(where: { $0.id == gameID }) {
             games[index].isConfirmed = true
+        }
+    }
+
+    func disputeScore(gameID: UUID) {
+        if let index = games.firstIndex(where: { $0.id == gameID }) {
+            games[index].status = .disputed
+            games[index].isConfirmed = false
         }
     }
 }

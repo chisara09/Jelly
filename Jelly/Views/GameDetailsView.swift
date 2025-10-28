@@ -15,6 +15,7 @@ struct GameDetailsView: View {
     
     @State private var showChat = false
     @State private var showRecordScore = false
+    @State private var showConfirmScore = false
     @State private var showCancelAlert = false
     
     private var isGamePast: Bool {
@@ -123,6 +124,22 @@ struct GameDetailsView: View {
                             .padding()
                             .background(Color(.systemGray6))
                             .cornerRadius(12)
+                            
+                            if !game.isConfirmed {
+                                Button(action: { showConfirmScore = true }) {
+                                    HStack {
+                                        Image(systemName: "checkmark.seal.fill")
+                                        Text("Confirm / Dispute Score")
+                                            .fontWeight(.semibold)
+                                    }
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 52)
+                                    .background(Color.blue)
+                                    .cornerRadius(14)
+                                }
+                            }
                         }
                     }
                     .padding(.horizontal)
@@ -223,6 +240,10 @@ struct GameDetailsView: View {
         }
         .sheet(isPresented: $showRecordScore) {
             RecordScoreView(game: game)
+                .environmentObject(gameManager)
+        }
+        .sheet(isPresented: $showConfirmScore) {
+            ConfirmScoreView(game: game)
                 .environmentObject(gameManager)
         }
         .alert("Cancel Game", isPresented: $showCancelAlert) {
