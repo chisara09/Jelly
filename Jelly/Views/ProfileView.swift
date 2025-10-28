@@ -287,15 +287,26 @@ struct CompletedGameRow: View {
     }
 }
 
-// Settings View
+// S-013: Settings – Notifications, dark mode, account controls
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var authManager: AuthenticationManager
+    @StateObject private var settingsManager = SettingsManager.shared
+    @StateObject private var safetyManager = SafetyManager.shared
+    @StateObject private var notificationManager = NotificationManager.shared
+    
+    @State private var showEditProfile = false
+    @State private var showBlockedUsers = false
+    @State private var showDeleteAccountAlert = false
+    @State private var editingName = ""
+    @State private var editingBio = ""
+    @State private var editingHomeCourt = ""
     
     var body: some View {
         NavigationStack {
-            List {
-                Section("Account") {
+            Form {
+                // Profile Section
+                Section("Profile") {
                     HStack {
                         Text("Email")
                         Spacer()
@@ -303,41 +314,250 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                     }
                     
-                    HStack {
-                        Text("Name")
-                        Spacer()
-                        Text(authManager.currentUser?.name ?? "")
-                            .foregroundColor(.secondary)
+                    Button(action: {
+                        if let user = authManager.currentUser {
+                            editingName = user.name
+                            showEditProfile = true
+                        }
+                    }) {
+                        HStack {
+                            Text("Edit Profile")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
                 
-                Section("Preferences") {
-                    HStack {
-                        Text("Notifications")
-                        Spacer()
-                        Toggle("", isOn: .constant(true))
+                // Notifications Section
+                Section("Notifications") {
+                    Toggle(isOn: $settingsManager.notificationsEnabled) {
+                        Label("Allow Notifications", systemImage: "bell.badge")
                     }
                     
-                    HStack {
-                        Text("Dark Mode")
-                        Spacer()
-                        Toggle("", isOn: .constant(false))
+                    if settingsManager.notificationsEnabled {
+                        Toggle(isOn: $settingsManager.gameReminderEnabled) {
+                            Label("Game Reminders", systemImage: "calendar")
+                        }
+                        
+                        Toggle(isOn: $settingsManager.challengeNotificationsEnabled) {
+                            Label("Challenge Alerts", systemImage: "trophy")
+                        }
+                        
+                        Toggle(isOn: $settingsManager.chatNotificationsEnabled) {
+                            Label("Chat Messages", systemImage: "message")
+                        }
+                    }
+                    
+                    if !notificationManager.isPermissionGranted {
+                        Text("Turn on Location.")
+                            .font(.caption)
+                            .foregroundColor(.orange)
                     }
                 }
                 
-                Section("Actions") {
+                // Appearance Section
+                Section("Appearance") {
+                    Toggle(isOn: $settingsManager.darkModeEnabled) {
+                        Label("Dark Mode", systemImage: "moon.fill")
+                    }
+                    
+                    Toggle(isOn: $settingsManager.showDistanceInMiles) {
+                        Label("Distance in Miles", systemImage: "location")
+                    }
+                }
+                
+                // Safety Section
+                Section("Safety & Privacy") {
+                    Button(action: { showBlockedUsers = true }) {
+                        Label("Blocked Users", systemImage: "person.crop.circle.badge.xmark")
+                            .foregroundColor(.primary)
+                    }
+                    
+                    NavigationLink {
+                        ReportHistoryView()
+                    } label: {
+                        Label("Report History", systemImage: "exclamationmark.triangle")
+                    }
+                }
+                
+                // Account Section
+                Section("Account") {
+                    Button(role: .destructive) {
+                        showDeleteAccountAlert = true
+                    } label: {
+                        Label("Delete Account", systemImage: "trash")
+                            .foregroundColor(.red)
+                    }
+                }
+                
+                // Logout Section
+                Section {
                     Button(role: .destructive) {
                         authManager.logout()
                         dismiss()
                     } label: {
                         HStack {
-                            Image(systemName: "arrow.right.square")
-                            Text("Log Out")
+                            Spacer()
+                            Label("Log Out", systemImage: "arrow.right.square")
+                            Spacer()
                         }
                     }
                 }
             }
             .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .preferredColorScheme(settingsManager.preferredColorScheme)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+            .sheet(isPresented: $showEditProfile) {
+                EditProfileView(
+                    name: $editingName,
+                    bio: $editingBio,
+                    homeCourt: $editingHomeCourt
+                )
+            }
+            .sheet(isPresented: $showBlockedUsers) {
+                BlockedUsersView()
+                    .environmentObject(safetyManager)
+            }
+            .alert("Delete Account", isPresented: $showDeleteAccountAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    authManager.logout()
+                    authManager.resetAllData()
+                    dismiss()
+                }
+            } message: {
+                Text("Are you sure you want to delete your account? This action cannot be undone.")
+            }
+        }
+    }
+}
+
+// Edit Profile View
+struct EditProfileView: View {
+    @Environment(\.dismiss) var dismiss
+    @Binding var name: String
+    @Binding var bio: String
+    @Binding var homeCourt: String
+    @State private var tempName: String
+    @State private var tempBio: String
+    @State private var tempHomeCourt: String
+    @State private var showError = false
+    @State private var errorMessage = ""
+    
+    init(name: Binding<String>, bio: Binding<String>, homeCourt: Binding<String>) {
+        self._name = name
+        self._bio = bio
+        self._homeCourt = homeCourt
+        self._tempName = State(initialValue: name.wrappedValue)
+        self._tempBio = State(initialValue: bio.wrappedValue)
+        self._tempHomeCourt = State(initialValue: homeCourt.wrappedValue)
+    }
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Name") {
+                    TextField("Enter your name", text: $tempName)
+                }
+                
+                Section("Bio") {
+                    TextField("Tell us about yourself", text: $tempBio, axis: .vertical)
+                        .lineLimit(3...6)
+                }
+                
+                Section("Home Court") {
+                    TextField("Your favorite court", text: $tempHomeCourt)
+                }
+            }
+            .navigationTitle("Edit Profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        saveChanges()
+                    }
+                    .disabled(tempName.isEmpty)
+                }
+            }
+            .alert("Error", isPresented: $showError) {
+                Button("OK") { }
+            } message: {
+                Text(errorMessage)
+            }
+        }
+    }
+    
+    private func saveChanges() {
+        guard !tempName.isEmpty else {
+            errorMessage = "Save failed."
+            showError = true
+            return
+        }
+        
+        name = tempName
+        bio = tempBio
+        homeCourt = tempHomeCourt
+        
+        dismiss()
+    }
+}
+
+// Blocked Users View
+struct BlockedUsersView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var safetyManager: SafetyManager
+    @State private var blockedUsernames: [UUID: String] = [:]
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                if safetyManager.blockedUsers.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "person.crop.circle.badge.checkmark")
+                            .font(.largeTitle)
+                            .foregroundColor(.secondary.opacity(0.5))
+                        Text("No blocked users")
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .listRowSeparator(.hidden)
+                } else {
+                    ForEach(safetyManager.blockedUsers, id: \.self) { userID in
+                        HStack {
+                            Circle()
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(width: 40, height: 40)
+                            VStack(alignment: .leading) {
+                                Text(blockedUsernames[userID] ?? "Blocked User")
+                                    .font(.subheadline)
+                            }
+                            Spacer()
+                            Button(action: {
+                                safetyManager.unblockUser(userID)
+                            }) {
+                                Text("Unblock")
+                                    .font(.caption)
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Blocked Users")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -347,6 +567,38 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+}
+
+// Report History View
+struct ReportHistoryView: View {
+    @EnvironmentObject var safetyManager: SafetyManager
+    
+    var body: some View {
+        List {
+            if safetyManager.reportedUsers.isEmpty {
+                VStack(spacing: 16) {
+                    Image(systemName: "checkmark.shield")
+                        .font(.largeTitle)
+                        .foregroundColor(.secondary.opacity(0.5))
+                    Text("No reports")
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .listRowSeparator(.hidden)
+            } else {
+                ForEach(safetyManager.reportedUsers, id: \.self) { userID in
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                        Text("Reported User")
+                            .font(.subheadline)
+                    }
+                }
+            }
+        }
+        .navigationTitle("Report History")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

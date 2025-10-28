@@ -11,7 +11,13 @@ struct OtherPlayerProfileView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var gameManager: GameManager
     let player: NearbyPlayer
+    @StateObject private var safetyManager = SafetyManager.shared
+    
     @State private var showNewChallenge = false
+    @State private var showBlockAlert = false
+    @State private var showReportSheet = false
+    @State private var showError = false
+    @State private var errorMessage = ""
     
     var body: some View {
         NavigationStack {
@@ -60,6 +66,7 @@ struct OtherPlayerProfileView: View {
                             .padding(.horizontal)
                     }
                     .padding(.top)
+                    .disabled(safetyManager.isBlocked(player.id))
                 }
             }
             .navigationTitle("Player")
@@ -68,10 +75,49 @@ struct OtherPlayerProfileView: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Close") { dismiss() }
                 }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button(role: .destructive, action: {
+                            showBlockAlert = true
+                        }) {
+                            Label("Block User", systemImage: "person.crop.circle.badge.xmark")
+                        }
+                        
+                        Button(action: {
+                            showReportSheet = true
+                        }) {
+                            Label("Report", systemImage: "exclamationmark.triangle")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                }
             }
             .sheet(isPresented: $showNewChallenge) {
                 NewChallengeView(player: player)
                     .environmentObject(gameManager)
+            }
+            .sheet(isPresented: $showReportSheet) {
+                ReportUserView(playerID: player.id, playerName: player.name)
+            }
+            .alert("Block User", isPresented: $showBlockAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Block", role: .destructive) {
+                    if let error = safetyManager.blockUser(player.id) {
+                        errorMessage = error
+                        showError = true
+                    } else {
+                        dismiss()
+                    }
+                }
+            } message: {
+                Text("Are you sure you want to block \(player.name)? You won't be able to communicate with them.")
+            }
+            .alert("Error", isPresented: $showError) {
+                Button("OK") { }
+            } message: {
+                Text(errorMessage)
             }
         }
     }
@@ -80,6 +126,89 @@ struct OtherPlayerProfileView: View {
         let parts = name.split(separator: " ")
         if parts.count >= 2 { return String(parts[0].prefix(1) + parts[1].prefix(1)).uppercased() }
         return String(name.prefix(2)).uppercased()
+    }
+}
+
+// Report User View
+struct ReportUserView: View {
+    @Environment(\.dismiss) var dismiss
+    @StateObject private var safetyManager = SafetyManager.shared
+    
+    let playerID: UUID
+    let playerName: String
+    @State private var selectedReason: ReportReason? = nil
+    @State private var showConfirmation = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Text("Report \(playerName)")
+                        .font(.headline)
+                }
+                
+                Section("Reason for Report") {
+                    ForEach(ReportReason.allCases, id: \.self) { reason in
+                        Button(action: {
+                            selectedReason = reason
+                        }) {
+                            HStack {
+                                Text(reason.description)
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                if selectedReason == reason {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.orange)
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                Section {
+                    if selectedReason != nil {
+                        Button("Submit Report") {
+                            submitReport()
+                        }
+                        .disabled(selectedReason == nil)
+                    }
+                }
+            }
+            .navigationTitle("Report User")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+            .alert("Report Submitted", isPresented: $showConfirmation) {
+                Button("OK") {
+                    dismiss()
+                }
+            } message: {
+                Text("Thank you for your report. We will review it shortly.")
+            }
+            .alert("Error", isPresented: $showError) {
+                Button("OK") { }
+            } message: {
+                Text(errorMessage)
+            }
+        }
+    }
+    
+    private func submitReport() {
+        guard let reason = selectedReason else { return }
+        
+        if let error = safetyManager.reportUser(playerID, reason: reason) {
+            errorMessage = error
+            showError = true
+        } else {
+            showConfirmation = true
+        }
     }
 }
 

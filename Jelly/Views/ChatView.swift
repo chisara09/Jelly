@@ -14,8 +14,11 @@ struct ChatView: View {
     let opponentName: String
     
     @StateObject private var chatManager = ChatManager()
+    @StateObject private var safetyManager = SafetyManager.shared
+    
     @State private var messageText: String = ""
     @State private var showBlockAlert = false
+    @State private var showReportSheet = false
     @State private var showError = false
     @State private var errorMessage = ""
     
@@ -25,6 +28,10 @@ struct ChatView: View {
     
     private var messages: [Message] {
         chatManager.getMessages(for: game.id)
+    }
+    
+    private var opponentID: UUID {
+        game.opponentID
     }
     
     var body: some View {
@@ -103,9 +110,7 @@ struct ChatView: View {
                     }
                     
                     Button(action: {
-                        // Report user functionality
-                        showError = true
-                        errorMessage = "Report feature coming soon"
+                        showReportSheet = true
                     }) {
                         Label("Report", systemImage: "exclamationmark.triangle")
                     }
@@ -114,14 +119,22 @@ struct ChatView: View {
                 }
             }
         }
+        .sheet(isPresented: $showReportSheet) {
+            ReportUserView(playerID: opponentID, playerName: opponentName)
+        }
         .alert("Block User", isPresented: $showBlockAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Block", role: .destructive) {
-                showError = true
-                errorMessage = "Couldn't update."
+                if let error = safetyManager.blockUser(opponentID) {
+                    errorMessage = error
+                    showError = true
+                } else {
+                    // Show confirmation and dismiss
+                    dismiss()
+                }
             }
         } message: {
-            Text("Are you sure you want to block \(opponentName)?")
+            Text("Are you sure you want to block \(opponentName)? You won't be able to communicate with them.")
         }
         .alert("Error", isPresented: $showError) {
             Button("OK") { }
@@ -134,11 +147,14 @@ struct ChatView: View {
         let trimmedText = messageText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedText.isEmpty else { return }
         
+        // Filter bad words before sending
+        let filteredText = safetyManager.filterBadWords(trimmedText)
+        
         chatManager.sendMessage(
             gameID: game.id,
             senderID: currentUserID,
             senderName: currentUserName,
-            text: trimmedText
+            text: filteredText
         )
         
         messageText = ""
