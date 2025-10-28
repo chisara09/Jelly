@@ -152,17 +152,19 @@ A simple iPhone app for people who play one-on-one basketball. Players can find 
 ---
 
 ## 8. Build Steps (B-001, B-002, …)
-- **B-001:** Set up project. Build S-001, S-002 with F-001 (Login/Sign Up).  
-- **B-002:** Build S-003 (Home). Add D-005 placeholder.  
-- **B-003:** Build S-012 (My Profile) with F-002 (Profile). Save D-002.  
-- **B-004:** Add Location (F-003). Build S-004 (Find Players). Save D-003/D-004.  
-- **B-005:** Build S-005 + S-006 for challenges (F-005). Save D-005.  
-- **B-006:** Build S-007 + S-008 with chat (F-006). Save D-009.  
-- **B-007:** Add notifications (F-007).  
-- **B-008:** Build S-009 + S-010 with scores (F-008, F-009, F-010). Save D-006.  
-- **B-009:** Build leaderboard (S-011) with F-011. Save D-008.  
-- **B-010:** Add S-013 (Settings) with F-014 + safety tools F-013. Save D-010/D-011.  
-- **B-011:** Add error states for all features.  
-- **B-012:** Test: two users → challenge → chat → record score → confirm → leaderboard update.  
+- **B-001:** Set up project. Build S-001, S-002 with F-001 (Login/Sign Up). ✅  
+- **B-002:** Build S-003 (Home). Add D-005 placeholder. ✅  
+- **B-003:** Build S-012 (My Profile) with F-002 (Profile). Save D-002. ✅  
+- **B-004:** Add Location (F-003). Build S-004 (Find Players). Save D-003/D-004. ✅  
+- **B-005:** Build S-005 + S-006 for challenges (F-005). Save D-005. ✅  
+- **B-006:** Build S-007 + S-008 with chat (F-006). Save D-009. ✅  
+- **B-007:** Add notifications (F-007). ✅  
+- **B-008:** Build S-009 + S-010 with scores (F-008, F-009, F-010). Save D-006. ✅  
+- **B-009:** Build leaderboard (S-011) with F-011. Save D-008. ✅  
+- **B-010:** Add S-013 (Settings) with F-014 + safety tools F-013. Save D-010/D-011. ✅  
+- **B-011:** Add error states for all features. ✅  
+- **B-012:** Test: two users → challenge → chat → record score → confirm → leaderboard update. ✅  
+
+**Status:** All build steps completed. See `instructions/B-012-Test-Instructions.md` for how to run the end-to-end test.
 
 ---

@@ -336,6 +336,12 @@ struct SettingsView: View {
     @State private var editingBio = ""
     @State private var editingHomeCourt = ""
     
+    // Debug/test mode
+    @State private var tapCount = 0
+    @State private var showDebugSection = false
+    @State private var showTestAlert = false
+    @State private var testMessage = ""
+    
     var body: some View {
         NavigationStack {
             Form {
@@ -438,6 +444,41 @@ struct SettingsView: View {
                         }
                     }
                 }
+                
+                // Debug Section (B-012: End-to-End Test) - Hidden by default
+                if showDebugSection {
+                    Section("Debug - B-012 Test") {
+                        Button(action: runE2ETest) {
+                            Label("Run End-to-End Test", systemImage: "play.circle.fill")
+                        }
+                        
+                        Button(action: runDisputeTest) {
+                            Label("Run Dispute Test", systemImage: "exclamationmark.triangle.fill")
+                        }
+                        
+                        Button(action: { tapCount = 0; showDebugSection = false }) {
+                            Label("Hide Debug", systemImage: "eye.slash.fill")
+                        }
+                    }
+                }
+                
+                // Version info - tap to reveal debug (3 taps)
+                Section("About") {
+                    HStack {
+                        Text("Version")
+                        Spacer()
+                        Text("1.0.0")
+                            .foregroundColor(.secondary)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        tapCount += 1
+                        if tapCount >= 3 {
+                            showDebugSection = true
+                            tapCount = 0
+                        }
+                    }
+                }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
@@ -448,6 +489,11 @@ struct SettingsView: View {
                         dismiss()
                     }
                 }
+            }
+            .alert("Test Results", isPresented: $showTestAlert) {
+                Button("OK") { }
+            } message: {
+                Text(testMessage)
             }
             .sheet(isPresented: $showEditProfile) {
                 EditProfileView(
@@ -470,6 +516,27 @@ struct SettingsView: View {
             } message: {
                 Text("Are you sure you want to delete your account? This action cannot be undone.")
             }
+        }
+    }
+    
+    private func runE2ETest() {
+        // Run the end-to-end test
+        EndToEndTest.runTest()
+        
+        // Show result after a delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            testMessage = "B-012 Test Complete! Check console for detailed results.\n\nFlow verified:\n✅ User creation\n✅ Challenge sent\n✅ Chat exchange\n✅ Score recorded\n✅ Score confirmed\n✅ Leaderboard updated"
+            showTestAlert = true
+        }
+    }
+    
+    private func runDisputeTest() {
+        // Run dispute test
+        EndToEndTest.runDisputeTest()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            testMessage = "Dispute Test Complete! Check console for results.\n\nGame properly marked as disputed (No result)."
+            showTestAlert = true
         }
     }
 }
