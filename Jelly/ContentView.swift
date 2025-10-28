@@ -24,6 +24,11 @@ struct ContentView: View {
                             Label("Find", systemImage: "map.fill")
                         }
                     
+                    LeaderboardView()
+                        .tabItem {
+                            Label("Leaders", systemImage: "crown.fill")
+                        }
+
                     ProfileView()
                         .tabItem {
                             Label("Profile", systemImage: "person.fill")
