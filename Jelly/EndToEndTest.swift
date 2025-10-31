@@ -123,7 +123,7 @@ final class EndToEndTest {
         
         // Give it a moment to complete
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            let topRated = leaderboardManager.topEntries(sortedBy: .rating, limit: 10)
+            let topRated = leaderboardManager.topEntries(sortedBy: .rating, scope: .global, limit: 10)
             print("✅ Leaderboard updated with \(topRated.count) top players")
             
             if !topRated.isEmpty {

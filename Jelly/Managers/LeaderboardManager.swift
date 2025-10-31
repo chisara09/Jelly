@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import CoreLocation
 
 // D-008: Leaderboard Snapshot – cached top players.
 struct LeaderboardEntry: Identifiable, Codable, Equatable, Hashable {
@@ -18,6 +19,8 @@ struct LeaderboardEntry: Identifiable, Codable, Equatable, Hashable {
     // currentStreak: positive for win streak, negative for loss streak
     let currentStreak: Int
     let homeCourt: String
+    let latitude: Double?
+    let longitude: Double?
 }
 
 struct LeaderboardSnapshot: Codable, Equatable {
@@ -42,10 +45,46 @@ final class LeaderboardManager: ObservableObject {
     }
     
     // MARK: - Public API
-    func topEntries(sortedBy metric: LeaderboardMetric, limit: Int = 50) -> [LeaderboardEntry] {
+    func topEntries(sortedBy metric: LeaderboardMetric, scope: LeaderboardScope, limit: Int = 50) -> [LeaderboardEntry] {
         guard let snapshot else { return [] }
-        let sorted = sort(entries: snapshot.entries, by: metric)
+        var filteredEntries = snapshot.entries
+        
+        // Filter by scope
+        if scope == .local {
+            filteredEntries = filterLocalEntries(entries: filteredEntries)
+        }
+        
+        let sorted = sort(entries: filteredEntries, by: metric)
         return Array(sorted.prefix(limit))
+    }
+    
+    private func filterLocalEntries(entries: [LeaderboardEntry]) -> [LeaderboardEntry] {
+        // Get user's location from LocationManager if available
+        // For now, we'll filter by proximity to a mock user location
+        // In production, this would use actual user location
+        let userLocation = CLLocationCoordinate2D(latitude: 40.7580, longitude: -73.9855) // NYC default
+        let localRadiusMiles = 25.0
+        
+        return entries.filter { entry in
+            guard let lat = entry.latitude, let lon = entry.longitude else { return false }
+            let entryLocation = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            let distance = distanceInMiles(from: userLocation, to: entryLocation)
+            return distance <= localRadiusMiles
+        }
+    }
+    
+    private func distanceInMiles(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D) -> Double {
+        let fromLocation = CLLocation(latitude: from.latitude, longitude: from.longitude)
+        let toLocation = CLLocation(latitude: to.latitude, longitude: to.longitude)
+        let distanceInMeters = fromLocation.distance(from: toLocation)
+        return distanceInMeters / 1609.34 // Convert meters to miles
+    }
+    
+    enum LeaderboardScope: String, CaseIterable, Identifiable {
+        case global = "Global"
+        case local = "Local"
+        
+        var id: String { rawValue }
     }
     
     func regenerateMockSnapshot() {
@@ -131,6 +170,7 @@ final class LeaderboardManager: ObservableObject {
             let losses = Int.random(in: 0...max(1, wins / 2))
             let rating = Double(1000 + wins * 10 + Int.random(in: 0...120))
             let streakPool = [-4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
+            let (court, lat, lon) = randomCourtWithLocation()
             let entry = LeaderboardEntry(
                 id: UUID(),
                 name: names[i],
@@ -138,19 +178,27 @@ final class LeaderboardManager: ObservableObject {
                 wins: wins,
                 losses: losses,
                 currentStreak: streakPool.randomElement() ?? 0,
-                homeCourt: randomCourt()
+                homeCourt: court,
+                latitude: lat,
+                longitude: lon
             )
             entries.append(entry)
         }
         return entries
     }
     
-    private func randomCourt() -> String {
+    private func randomCourtWithLocation() -> (name: String, latitude: Double, longitude: Double) {
         let courts = [
-            "Central Park Courts", "Brooklyn Heights", "Harlem Rucker Park", "Queensbridge Courts",
-            "Sunset Park", "Prospect Park", "Riverside Courts", "Chelsea Piers"
+            ("Central Park Courts", 40.7829, -73.9654),
+            ("Brooklyn Heights", 40.6961, -73.9969),
+            ("Harlem Rucker Park", 40.8303, -73.9389),
+            ("Queensbridge Courts", 40.7575, -73.9486),
+            ("Sunset Park", 40.6564, -74.0106),
+            ("Prospect Park", 40.6602, -73.9690),
+            ("Riverside Courts", 40.7957, -73.9712),
+            ("Chelsea Piers", 40.7467, -74.0073)
         ]
-        return courts.randomElement() ?? "Local Court"
+        return courts.randomElement() ?? ("Local Court", 40.7580, -73.9855)
     }
 }
 

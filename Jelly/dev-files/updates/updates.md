@@ -33,9 +33,10 @@ General updates are summarized at the end.
    > - ✅ Clicking a court should open **Google Maps** with that location pinned.
    > - **Status**: COMPLETE - See `/dev-files/updates/FINDPLAYERSVIEW-UPDATES-COMPLETE.md`  
 
-7. **LeaderboardView** — Player rankings and stats overview  
-   > - Add a **toggle button** for **local leaderboard view** to see nearby players’ ratings.  
-   > - Include global leaderboard by default.  
+7. **LeaderboardView** ✅ — Player rankings and stats overview  
+   > - ✅ Add a **toggle button** for **local leaderboard view** to see nearby players' ratings.  
+   > - ✅ Include global leaderboard by default.
+   > - **Status**: COMPLETE - See `/dev-files/updates/LEADERBOARDVIEW-UPDATES-COMPLETE.md`  
 
 8. **ChatView** — Messaging and chat system  
    > - Displays all user conversations.  

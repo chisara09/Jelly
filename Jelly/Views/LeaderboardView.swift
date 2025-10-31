@@ -12,10 +12,22 @@ struct LeaderboardView: View {
     @StateObject private var leaderboardManager = LeaderboardManager()
     @StateObject private var gameManager = GameManager()
     @State private var selectedMetric: LeaderboardManager.LeaderboardMetric = .rating
+    @State private var selectedScope: LeaderboardManager.LeaderboardScope = .global
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                // Scope Picker (Global/Local)
+                Picker("Scope", selection: $selectedScope) {
+                    ForEach(LeaderboardManager.LeaderboardScope.allCases) { scope in
+                        Text(scope.rawValue).tag(scope)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.top)
+                
+                // Metric Picker (Rating/Wins/Streak)
                 Picker("Metric", selection: $selectedMetric) {
                     ForEach(LeaderboardManager.LeaderboardMetric.allCases) { metric in
                         Text(metric.rawValue).tag(metric)
@@ -77,7 +89,7 @@ struct LeaderboardView: View {
             }
             .padding()
         } else {
-            let entries = leaderboardManager.topEntries(sortedBy: selectedMetric, limit: 50)
+            let entries = leaderboardManager.topEntries(sortedBy: selectedMetric, scope: selectedScope, limit: 50)
             if entries.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "crown")
