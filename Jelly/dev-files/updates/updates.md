@@ -28,9 +28,10 @@ General updates are summarized at the end.
    > - ✅ Remove about section.
    > - **Status**: COMPLETE - See `/dev-files/updates/PROFILEVIEW-UPDATES-COMPLETE.md`
 
-6. **FindPlayersView** — Map and nearby player discovery  
-   > - Show **courts as small dots** on the map for clarity.  
-   > - Clicking a court should open **Google Maps** with that location pinned.  
+6. **FindPlayersView** ✅ — Map and nearby player discovery  
+   > - ✅ Show **courts as small dots** on the map for clarity.  
+   > - ✅ Clicking a court should open **Google Maps** with that location pinned.
+   > - **Status**: COMPLETE - See `/dev-files/updates/FINDPLAYERSVIEW-UPDATES-COMPLETE.md`  
 
 7. **LeaderboardView** — Player rankings and stats overview  
    > - Add a **toggle button** for **local leaderboard view** to see nearby players’ ratings.  

@@ -8,6 +8,7 @@
 
 /* Begin PBXFileReference section */
 		74EAAA132EAE8F9100F9A1CE /* Jelly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Jelly.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		74EAABE82EB5269900F9A1CE /* NYC-Location.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "NYC-Location.gpx"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,6 +33,7 @@
 		74EAAA0A2EAE8F9100F9A1CE = {
 			isa = PBXGroup;
 			children = (
+				74EAABE82EB5269900F9A1CE /* NYC-Location.gpx */,
 				74EAAA152EAE8F9100F9A1CE /* Jelly */,
 				74EAAA142EAE8F9100F9A1CE /* Products */,
 			);

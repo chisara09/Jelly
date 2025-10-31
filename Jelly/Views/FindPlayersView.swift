@@ -32,49 +32,74 @@ struct FindPlayersView: View {
     
     var filteredCourts: [Court] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if query.isEmpty { return courts }
-        return courts.filter { $0.name.lowercased().contains(query) || $0.address.lowercased().contains(query) }
+        if query.isEmpty {
+            return courts
+        }
+        return courts.filter { court in
+            court.name.lowercased().contains(query) || court.address.lowercased().contains(query)
+        }
     }
     
     var filteredPlayers: [NearbyPlayer] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if query.isEmpty { return players }
-        return players.filter { $0.name.lowercased().contains(query) || $0.homeCourt.lowercased().contains(query) }
+        if query.isEmpty {
+            return players
+        }
+        return players.filter { player in
+            player.name.lowercased().contains(query) || player.homeCourt.lowercased().contains(query)
+        }
+    }
+    
+    private func openInGoogleMaps(court: Court) {
+        let coordinateString = "\(court.coordinate.latitude),\(court.coordinate.longitude)"
+        
+        if let googleMapsURL = URL(string: "comgooglemaps://?q=\(coordinateString)&center=\(coordinateString)&zoom=15"),
+           UIApplication.shared.canOpenURL(googleMapsURL) {
+            UIApplication.shared.open(googleMapsURL)
+        } else if let appleMapsURL = URL(string: "http://maps.apple.com/?q=\(court.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")&ll=\(coordinateString)&z=15") {
+            UIApplication.shared.open(appleMapsURL)
+        }
     }
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if let loc = locationManager.lastLocation {
-                    Map(
-                        coordinateRegion: Binding(
-                            get: {
-                                MKCoordinateRegion(
-                                    center: loc.clLocationCoordinate,
-                                    span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
-                                )
-                            },
-                            set: { region = $0 }
-                        ),
-                        annotationItems: filteredCourts
-                    ) { court in
-                        MapMarker(coordinate: court.coordinate, tint: .orange)
+                // Use user location if available, otherwise center on NYC (where courts are)
+                let mapCenter = locationManager.lastLocation?.clLocationCoordinate ?? CLLocationCoordinate2D(latitude: 40.7812, longitude: -73.9665)
+                
+                let mapRegion = Binding<MKCoordinateRegion>(
+                    get: {
+                        MKCoordinateRegion(
+                            center: mapCenter,
+                            span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+                        )
+                    },
+                    set: { region = $0 }
+                )
+                
+                Map(coordinateRegion: mapRegion, annotationItems: filteredCourts, annotationContent: { court in
+                    MapMarker(coordinate: court.coordinate, tint: .orange)
+                })
+                .frame(height: 280)
+                .onAppear {
+                    // Request location permission when map appears
+                    if locationManager.lastLocation == nil {
+                        locationManager.requestWhenInUseAuthorization()
                     }
-                    .frame(height: 280)
-                } else {
-                    ZStack {
-                        Rectangle()
-                            .fill(Color(.systemGray6))
-                        
-                        VStack(spacing: 8) {
-                            Image(systemName: "location.slash")
-                                .font(.largeTitle)
-                                .foregroundColor(.orange)
-                            Text(locationManager.permissionError ?? "Fetching your location...")
-                                .foregroundColor(.secondary)
-                        }
+                }
+                
+                // Show location status message below map
+                if locationManager.permissionError != nil {
+                    HStack {
+                        Image(systemName: "info.circle")
+                            .foregroundColor(.orange)
+                        Text("Location services disabled. Showing NYC area.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
-                    .frame(height: 280)
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                    .background(Color(.systemGray6))
                 }
                 
                 List {
@@ -135,14 +160,19 @@ struct FindPlayersView: View {
                             }
                         } else {
                             ForEach(filteredCourts) { court in
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(court.name)
-                                        .font(.headline)
-                                    Text(court.address)
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                                Button(action: {
+                                    openInGoogleMaps(court: court)
+                                }) {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(court.name)
+                                            .font(.headline)
+                                        Text(court.address)
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .padding(.vertical, 4)
                                 }
-                                .padding(.vertical, 4)
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                     }
