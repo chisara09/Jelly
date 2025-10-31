@@ -55,9 +55,10 @@ General updates are summarized at the end.
    > - Display pending confirmation if only one side submits.  
    > - Lock record once confirmed.
 
-12. **OtherPlayerProfileView** — View another user’s profile  
-   > - Show player’s rating, match history, and mutual games.  
-   > - Option to **send challenge** or **message** directly.
+12. **OtherPlayerProfileView** ✅ — View another user's profile  
+   > - ✅ Show player's rating, match history, and mutual games.  
+   > - ✅ Option to **send challenge** or **message** directly.
+   > - **Status**: COMPLETE - See `/dev-files/updates/OTHERPLAYERPROFILEVIEW-UPDATES-COMPLETE.md`
 
 ---
 
