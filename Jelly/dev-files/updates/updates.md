@@ -45,11 +45,10 @@ General updates are summarized at the end.
    > - **Status**: COMPLETE - See `/dev-files/updates/CHATVIEW-UPDATES-COMPLETE.md`
 
 9. **GameDetailsView** — Match summary and analytics  
-   > - Show player names, score breakdown, and match date/time.  
-   > - Include post-match ratings and stat comparison.
 
-10. **NewChallengeView** — Challenge creation screen  
-   > - When selecting a court, give players the option to select either of their homecourts and a searchbar for other courts. 
+10. **NewChallengeView** ✅ — Challenge creation screen  
+   > - ✅ When selecting a court, give players the option to select either of their homecourts and a searchbar for other courts.
+   > - **Status**: COMPLETE - See `/dev-files/updates/NEWCHALLENGEVIEW-UPDATES-COMPLETE.md` 
 
 11. **ConfirmScoreView** — Final score submission  
    > - Both players confirm final result.  
