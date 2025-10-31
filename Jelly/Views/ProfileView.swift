@@ -7,6 +7,13 @@
 
 import SwiftUI
 
+// Enum for history types
+enum StatHistoryType {
+    case all
+    case rating
+    case streak
+}
+
 // S-012: My Profile – My photo, record, streak, recent games.
 struct ProfileView: View {
     @EnvironmentObject var authManager: AuthenticationManager
@@ -15,6 +22,8 @@ struct ProfileView: View {
     @State private var profile: PlayerProfile
     @State private var showProfileError = false
     @State private var isProfileLoading = false
+    @State private var showMatchHistory = false
+    @State private var selectedHistoryType: StatHistoryType = .all
     
     // Mock stats
     @State private var stats = PlayerStats(
@@ -80,19 +89,6 @@ struct ProfileView: View {
                     .frame(maxWidth: .infinity)
                     .background(Color(.systemGroupedBackground))
                     
-                    // Bio Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("About")
-                            .font(.headline)
-                        
-                        Text(profile.bio)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(.systemBackground))
-                    
                     Divider()
                     
                     // Stats Section
@@ -103,10 +99,37 @@ struct ProfileView: View {
                             .padding(.top, 16)
                         
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                            StatRow(title: "Record", value: stats.displayRecord, icon: "chart.bar", color: .blue)
-                            StatRow(title: "Win Rate", value: String(format: "%.0f%%", stats.winPercentage), icon: "star.fill", color: .green)
-                            StatRow(title: "Streak", value: stats.streakDisplay, icon: "flame.fill", color: .orange)
-                            StatRow(title: "Rating", value: String(format: "%.0f", stats.rating), icon: "crown.fill", color: .purple)
+                            Button(action: {
+                                selectedHistoryType = .all
+                                showMatchHistory = true
+                            }) {
+                                StatRow(title: "Record", value: stats.displayRecord, icon: "chart.bar", color: .blue)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            Button(action: {
+                                selectedHistoryType = .all
+                                showMatchHistory = true
+                            }) {
+                                StatRow(title: "Win Rate", value: String(format: "%.0f%%", stats.winPercentage), icon: "star.fill", color: .green)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            Button(action: {
+                                selectedHistoryType = .streak
+                                showMatchHistory = true
+                            }) {
+                                StatRow(title: "Streak", value: stats.streakDisplay, icon: "flame.fill", color: .orange)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            Button(action: {
+                                selectedHistoryType = .rating
+                                showMatchHistory = true
+                            }) {
+                                StatRow(title: "Rating", value: String(format: "%.0f", stats.rating), icon: "crown.fill", color: .purple)
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
                         .padding(.horizontal)
                         
@@ -185,6 +208,13 @@ struct ProfileView: View {
             .sheet(isPresented: $showSettings) {
                 SettingsView()
                     .environmentObject(authManager)
+            }
+            .sheet(isPresented: $showMatchHistory) {
+                ProfileMatchHistoryView(
+                    games: gameManager.getCompletedGames(),
+                    historyType: selectedHistoryType,
+                    currentStats: stats
+                )
             }
             .onAppear {
                 loadProfile()
@@ -303,7 +333,7 @@ struct CompletedGameRow: View {
             Spacer()
             
             VStack(alignment: .trailing, spacing: 4) {
-                if let winnerID = game.winnerID, let loserID = game.loserID {
+                if let winnerID = game.winnerID {
                     Text(game.challengerID == winnerID ? "W" : "L")
                         .font(.headline)
                         .foregroundColor(game.challengerID == winnerID ? .green : .red)
@@ -700,6 +730,240 @@ struct ReportHistoryView: View {
         }
         .navigationTitle("Report History")
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// Profile Match History View
+struct ProfileMatchHistoryView: View {
+    @Environment(\.dismiss) var dismiss
+    let games: [Game]
+    let historyType: StatHistoryType
+    let currentStats: PlayerStats
+    
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Current Stats Summary
+                    VStack(spacing: 16) {
+                        Text("Current Stats")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal)
+                            .padding(.top, 16)
+                        
+                        HStack(spacing: 20) {
+                            VStack {
+                                Text("\(currentStats.wins)-\(currentStats.losses)")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                Text("Record")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Divider()
+                                .frame(height: 40)
+                            
+                            VStack {
+                                Text(String(format: "%.0f", currentStats.rating))
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                Text("Rating")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Divider()
+                                .frame(height: 40)
+                            
+                            VStack {
+                                Text("\(currentStats.currentStreak)")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                Text("Streak")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+                    }
+                    .padding(.bottom, 20)
+                    
+                    Divider()
+                    
+                    // Match History
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Match History")
+                            .font(.headline)
+                            .padding(.horizontal)
+                            .padding(.top, 16)
+                        
+                        if games.isEmpty {
+                            VStack(spacing: 16) {
+                                Image(systemName: "basketball")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.secondary.opacity(0.5))
+                                Text("No matches yet")
+                                    .font(.headline)
+                                    .foregroundColor(.secondary)
+                                Text("Your match history will appear here")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 60)
+                        } else {
+                            ForEach(games.sorted(by: { $0.createdAt > $1.createdAt })) { game in
+                                MatchHistoryRow(game: game, currentPlayerID: currentStats.playerID)
+                            }
+                        }
+                    }
+                    .padding(.bottom, 20)
+                }
+            }
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("Match History")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Match History Row Component
+struct MatchHistoryRow: View {
+    let game: Game
+    let currentPlayerID: UUID
+    
+    private var isWin: Bool {
+        game.winnerID == currentPlayerID
+    }
+    
+    private var resultText: String {
+        if game.winnerID == nil {
+            return "Disputed"
+        }
+        return isWin ? "Win" : "Loss"
+    }
+    
+    private var resultColor: Color {
+        if game.winnerID == nil {
+            return .orange
+        }
+        return isWin ? .green : .red
+    }
+    
+    // Calculate stats before and after (mock data for now)
+    private var ratingBefore: Double {
+        // Mock calculation - in real app would fetch from database
+        return 1200.0 + Double.random(in: -50...50)
+    }
+    
+    private var ratingAfter: Double {
+        if game.winnerID == nil {
+            return ratingBefore
+        }
+        return isWin ? ratingBefore + 15.5 : ratingBefore - 12.3
+    }
+    
+    private var ratingChange: Double {
+        return ratingAfter - ratingBefore
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Main match info
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("vs \(game.opponentName)")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    
+                    Text(game.courtName)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text(game.formattedDate)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(resultText)
+                        .font(.headline)
+                        .foregroundColor(resultColor)
+                    
+                    if let challengerScore = game.challengerScore, let opponentScore = game.opponentScore {
+                        let winnerScore = max(challengerScore, opponentScore)
+                        let loserScore = min(challengerScore, opponentScore)
+                        Text("\(winnerScore) - \(loserScore)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .padding()
+            .background(Color(.systemBackground))
+            
+            // Stats before and after
+            if game.winnerID != nil {
+                Divider()
+                    .padding(.horizontal)
+                
+                HStack(spacing: 0) {
+                    // Before stats
+                    VStack(spacing: 4) {
+                        Text("Before")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(String(format: "%.0f", ratingBefore))
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                    .frame(maxWidth: .infinity)
+                    
+                    Image(systemName: "arrow.right")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    // After stats
+                    VStack(spacing: 4) {
+                        Text("After")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        HStack(spacing: 4) {
+                            Text(String(format: "%.0f", ratingAfter))
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            
+                            Text(String(format: "%+.1f", ratingChange))
+                                .font(.caption2)
+                                .foregroundColor(ratingChange >= 0 ? .green : .red)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .padding(.vertical, 12)
+                .padding(.horizontal)
+                .background(Color(.systemGray6).opacity(0.5))
+            }
+        }
+        .background(Color(.systemBackground))
+        .cornerRadius(10)
+        .padding(.horizontal)
+        .padding(.vertical, 4)
     }
 }
 

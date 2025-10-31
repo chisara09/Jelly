@@ -23,9 +23,10 @@ General updates are summarized at the end.
    > - **Create Challenge** button leads to the **NewChallengeView**, where users can **search for players** and set up a match.  
    > - Include **nearby players** and **recent opponents** for quick selection.
 
-5. **ProfileView** — Current user’s personal profile  
-   > - Clicking on any **stat box** navigates to a **history view** (previous matches + outcomes).  
-   > - Remove about section.
+5. **ProfileView** ✅ — Current user's personal profile  
+   > - ✅ Clicking on any **stat box** navigates to a **history view** (previous matches + outcomes).  
+   > - ✅ Remove about section.
+   > - **Status**: COMPLETE - See `/dev-files/updates/PROFILEVIEW-UPDATES-COMPLETE.md`
 
 6. **FindPlayersView** — Map and nearby player discovery  
    > - Show **courts as small dots** on the map for clarity.  
