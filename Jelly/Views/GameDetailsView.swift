@@ -17,6 +17,7 @@ struct GameDetailsView: View {
     @State private var showRecordScore = false
     @State private var showConfirmScore = false
     @State private var showCancelAlert = false
+    @State private var showPlayerProfile = false
     
     private var isGamePast: Bool {
         game.scheduledDate < Date()
@@ -35,9 +36,15 @@ struct GameDetailsView: View {
                         .font(.title3)
                         .foregroundColor(.secondary)
                     
-                    Text(game.opponentName)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                    Button(action: {
+                        showPlayerProfile = true
+                    }) {
+                        Text(game.opponentName)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                     
                     if game.status != .completed && game.status != .canceled {
                         Text(game.status.displayName)
@@ -253,6 +260,19 @@ struct GameDetailsView: View {
             }
         } message: {
             Text("Are you sure you want to cancel this game?")
+        }
+        .sheet(isPresented: $showPlayerProfile) {
+            // Convert Game opponent to NearbyPlayer for profile view
+            OtherPlayerProfileView(
+                player: NearbyPlayer(
+                    id: game.opponentID,
+                    name: game.opponentName,
+                    skillLevel: "Unknown", // Not available in Game model
+                    homeCourt: game.courtName, // Use game court as fallback
+                    distanceMiles: 0.0 // Not available
+                )
+            )
+            .environmentObject(gameManager)
         }
     }
 }

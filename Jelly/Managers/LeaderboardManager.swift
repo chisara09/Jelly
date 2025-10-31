@@ -9,7 +9,7 @@ import Foundation
 import Combine
 
 // D-008: Leaderboard Snapshot – cached top players.
-struct LeaderboardEntry: Identifiable, Codable, Equatable {
+struct LeaderboardEntry: Identifiable, Codable, Equatable, Hashable {
     let id: UUID
     let name: String
     let rating: Double

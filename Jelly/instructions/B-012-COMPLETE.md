@@ -102,27 +102,11 @@ let topPlayers = leaderboardManager.topEntries(...)
 
 ## How to Run the Test
 
-### Method 1: Through UI (Recommended)
-1. Open Jelly app
-2. Navigate to Profile → Settings (gear icon)
-3. Scroll to "About" section
-4. Tap "Version 1.0.0" three times
-5. Debug section appears
-6. Tap "Run End-to-End Test"
-7. Check console for results
-8. Alert appears on completion
+For detailed step-by-step instructions, troubleshooting, and alternative methods, see **`B-012-Test-Instructions.md`**.
 
-### Method 2: Code Execution
-```swift
-// Run the main test
-EndToEndTest.runTest()
-
-// Run dispute test
-EndToEndTest.runDisputeTest()
-
-// Run all tests
-EndToEndTest.runAllTests()
-```
+Quick reference:
+- **UI Method**: Profile → Settings → Tap "Version 1.0.0" three times → Run test
+- **Code Method**: `EndToEndTest.runTest()` or `EndToEndTest.runDisputeTest()`
 
 ---
 

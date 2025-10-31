@@ -10,6 +10,7 @@ import SwiftUI
 // S-011: Leaderboard – Ranked list with tabs for rating, wins, streak.
 struct LeaderboardView: View {
     @StateObject private var leaderboardManager = LeaderboardManager()
+    @StateObject private var gameManager = GameManager()
     @State private var selectedMetric: LeaderboardManager.LeaderboardMetric = .rating
     
     var body: some View {
@@ -39,6 +40,19 @@ struct LeaderboardView: View {
                         .accessibilityLabel("Refresh Leaderboard")
                     }
                 }
+            }
+            .navigationDestination(for: LeaderboardEntry.self) { entry in
+                // Convert LeaderboardEntry to NearbyPlayer for profile view
+                OtherPlayerProfileView(
+                    player: NearbyPlayer(
+                        id: entry.id,
+                        name: entry.name,
+                        skillLevel: skillLevelFromRating(entry.rating),
+                        homeCourt: entry.homeCourt,
+                        distanceMiles: 0.0 // Not available in leaderboard
+                    )
+                )
+                .environmentObject(gameManager)
             }
         }
     }
@@ -80,9 +94,10 @@ struct LeaderboardView: View {
             } else {
                 List {
                     Section(header: headerView) {
-                        ForEach(0..<entries.count) { index in
-                            let entry = entries[index]
-                            LeaderboardRowView(rank: index + 1, entry: entry)
+                        ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
+                            NavigationLink(value: entry) {
+                                LeaderboardRowView(rank: index + 1, entry: entry)
+                            }
                         }
                     }
                 }
@@ -105,6 +120,12 @@ struct LeaderboardView: View {
                 Text("Streak").font(.caption).foregroundColor(.secondary)
             }
         }
+    }
+    
+    private func skillLevelFromRating(_ rating: Double) -> String {
+        if rating >= 1400 { return "Advanced" }
+        if rating >= 1200 { return "Intermediate" }
+        return "Beginner"
     }
 }
 
@@ -139,6 +160,7 @@ private struct LeaderboardRowView: View {
             }
         }
         .padding(.vertical, 6)
+        .contentShape(Rectangle())
     }
     
     private var streakText: String {

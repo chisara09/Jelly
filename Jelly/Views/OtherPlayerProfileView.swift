@@ -20,105 +20,99 @@ struct OtherPlayerProfileView: View {
     @State private var errorMessage = ""
     
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    // Avatar
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing)
-                            )
-                            .frame(width: 100, height: 100)
-                        Text(initials(from: player.name))
-                            .font(.system(size: 40, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-                    .padding(.top)
-                    
-                    Text(player.name)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    
-                    HStack(spacing: 8) {
-                        Image(systemName: "mappin.circle.fill")
-                            .foregroundColor(.orange)
-                        Text(player.homeCourt)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    HStack(spacing: 12) {
-                        Label(player.skillLevel, systemImage: "star.fill")
-                        Label(String(format: "%.1f mi", player.distanceMiles), systemImage: "location")
-                    }
-                    .foregroundColor(.secondary)
-                    
-                    Button(action: { showNewChallenge = true }) {
-                        Text("Challenge")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 52)
-                            .background(
-                                LinearGradient(colors: [.orange, .red], startPoint: .leading, endPoint: .trailing)
-                            )
-                            .cornerRadius(14)
-                            .padding(.horizontal)
-                    }
-                    .padding(.top)
-                    .disabled(safetyManager.isBlocked(player.id))
+        ScrollView {
+            VStack(spacing: 16) {
+                // Avatar
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        )
+                        .frame(width: 100, height: 100)
+                    Text(initials(from: player.name))
+                        .font(.system(size: 40, weight: .bold))
+                        .foregroundColor(.white)
                 }
-            }
-            .navigationTitle("Player")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Close") { dismiss() }
+                .padding(.top)
+                
+                Text(player.name)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                
+                HStack(spacing: 8) {
+                    Image(systemName: "mappin.circle.fill")
+                        .foregroundColor(.orange)
+                    Text(player.homeCourt)
+                        .foregroundColor(.secondary)
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button(role: .destructive, action: {
-                            showBlockAlert = true
-                        }) {
-                            Label("Block User", systemImage: "person.crop.circle.badge.xmark")
-                        }
-                        
-                        Button(action: {
-                            showReportSheet = true
-                        }) {
-                            Label("Report", systemImage: "exclamationmark.triangle")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
+                HStack(spacing: 12) {
+                    Label(player.skillLevel, systemImage: "star.fill")
+                    Label(String(format: "%.1f mi", player.distanceMiles), systemImage: "location")
+                }
+                .foregroundColor(.secondary)
+                
+                Button(action: { showNewChallenge = true }) {
+                    Text("Challenge")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(
+                            LinearGradient(colors: [.orange, .red], startPoint: .leading, endPoint: .trailing)
+                        )
+                        .cornerRadius(14)
+                        .padding(.horizontal)
+                }
+                .padding(.top)
+                .disabled(safetyManager.isBlocked(player.id))
+            }
+        }
+        .navigationTitle("Player")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button(role: .destructive, action: {
+                        showBlockAlert = true
+                    }) {
+                        Label("Block User", systemImage: "person.crop.circle.badge.xmark")
                     }
+                    
+                    Button(action: {
+                        showReportSheet = true
+                    }) {
+                        Label("Report", systemImage: "exclamationmark.triangle")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
                 }
             }
-            .sheet(isPresented: $showNewChallenge) {
-                NewChallengeView(player: player)
-                    .environmentObject(gameManager)
-            }
-            .sheet(isPresented: $showReportSheet) {
-                ReportUserView(playerID: player.id, playerName: player.name)
-            }
-            .alert("Block User", isPresented: $showBlockAlert) {
-                Button("Cancel", role: .cancel) { }
-                Button("Block", role: .destructive) {
-                    if let error = safetyManager.blockUser(player.id) {
-                        errorMessage = error
-                        showError = true
-                    } else {
-                        dismiss()
-                    }
+        }
+        .sheet(isPresented: $showNewChallenge) {
+            NewChallengeView(player: player)
+                .environmentObject(gameManager)
+        }
+        .sheet(isPresented: $showReportSheet) {
+            ReportUserView(playerID: player.id, playerName: player.name)
+        }
+        .alert("Block User", isPresented: $showBlockAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Block", role: .destructive) {
+                if let error = safetyManager.blockUser(player.id) {
+                    errorMessage = error
+                    showError = true
+                } else {
+                    dismiss()
                 }
-            } message: {
-                Text("Are you sure you want to block \(player.name)? You won't be able to communicate with them.")
             }
-            .alert("Error", isPresented: $showError) {
-                Button("OK") { }
-            } message: {
-                Text(errorMessage)
-            }
+        } message: {
+            Text("Are you sure you want to block \(player.name)? You won't be able to communicate with them.")
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK") { }
+        } message: {
+            Text(errorMessage)
         }
     }
     

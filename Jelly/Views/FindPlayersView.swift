@@ -117,6 +117,7 @@ struct FindPlayersView: View {
                                         Image(systemName: "chevron.right")
                                             .foregroundColor(.secondary)
                                     }
+                                    .contentShape(Rectangle())
                                 }
                             }
                         }
