@@ -51,9 +51,7 @@ General updates are summarized at the end.
    > - **Status**: COMPLETE - See `/dev-files/updates/NEWCHALLENGEVIEW-UPDATES-COMPLETE.md` 
 
 11. **ConfirmScoreView** — Final score submission  
-   > - Both players confirm final result.  
-   > - Display pending confirmation if only one side submits.  
-   > - Lock record once confirmed.
+
 
 12. **OtherPlayerProfileView** ✅ — View another user's profile  
    > - ✅ Show player's rating, match history, and mutual games.  
@@ -62,7 +60,8 @@ General updates are summarized at the end.
 
 ---
 
-## ⚙️ General App-Wide Updates
+## ⚙️ General App-Wide Updates ✅
 
-- **Remove player levels** (e.g., “Advanced,” “Intermediate”).  
+- ✅ **Remove player levels** (e.g., "Advanced," "Intermediate").  
   → Use **numerical ratings** exclusively to represent skill.
+  > - **Status**: COMPLETE - See `/dev-files/updates/GENERAL-APP-WIDE-UPDATES-COMPLETE.md`

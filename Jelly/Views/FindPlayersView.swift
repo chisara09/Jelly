@@ -25,9 +25,9 @@ struct FindPlayersView: View {
     
     // Mock nearby players
     @State private var players: [NearbyPlayer] = [
-        NearbyPlayer(name: "Marcus Johnson", skillLevel: "Advanced", homeCourt: "Central Park", distanceMiles: 2.3),
-        NearbyPlayer(name: "Jamal Smith", skillLevel: "Intermediate", homeCourt: "Brooklyn Heights", distanceMiles: 4.1),
-        NearbyPlayer(name: "Eric Lee", skillLevel: "Beginner", homeCourt: "Harlem Courts", distanceMiles: 1.2)
+        NearbyPlayer(name: "Marcus Johnson", rating: 1425.0, homeCourt: "Central Park", distanceMiles: 2.3),
+        NearbyPlayer(name: "Jamal Smith", rating: 1280.0, homeCourt: "Brooklyn Heights", distanceMiles: 4.1),
+        NearbyPlayer(name: "Eric Lee", rating: 1150.0, homeCourt: "Harlem Courts", distanceMiles: 1.2)
     ]
     
     var filteredCourts: [Court] {
@@ -134,7 +134,7 @@ struct FindPlayersView: View {
                                         
                                         VStack(alignment: .leading) {
                                             Text(player.name)
-                                            Text("\(player.skillLevel) • \(String(format: "%.1f mi", player.distanceMiles))")
+                                            Text("\(String(format: "%.0f", player.rating)) • \(String(format: "%.1f mi", player.distanceMiles))")
                                                 .font(.caption)
                                                 .foregroundColor(.secondary)
                                         }

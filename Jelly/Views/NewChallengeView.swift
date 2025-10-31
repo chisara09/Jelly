@@ -277,6 +277,6 @@ struct CourtSelectionView: View {
 }
 
 #Preview {
-    NewChallengeView(player: NearbyPlayer(name: "Marcus Johnson", skillLevel: "Advanced", homeCourt: "Central Park", distanceMiles: 2.3))
+    NewChallengeView(player: NearbyPlayer(name: "Marcus Johnson", rating: 1425.0, homeCourt: "Central Park", distanceMiles: 2.3))
         .environmentObject(GameManager())
 }

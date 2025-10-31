@@ -463,6 +463,6 @@ struct ReportUserView: View {
 }
 
 #Preview {
-    OtherPlayerProfileView(player: NearbyPlayer(name: "Marcus Johnson", skillLevel: "Advanced", homeCourt: "Central Park", distanceMiles: 2.3))
+    OtherPlayerProfileView(player: NearbyPlayer(name: "Marcus Johnson", rating: 1425.0, homeCourt: "Central Park", distanceMiles: 2.3))
         .environmentObject(GameManager())
 }

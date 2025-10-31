@@ -267,7 +267,7 @@ struct GameDetailsView: View {
                 player: NearbyPlayer(
                     id: game.opponentID,
                     name: game.opponentName,
-                    skillLevel: "Unknown", // Not available in Game model
+                    rating: 1200.0, // Default rating - not available in Game model
                     homeCourt: game.courtName, // Use game court as fallback
                     distanceMiles: 0.0 // Not available
                 )

@@ -59,7 +59,7 @@ struct LeaderboardView: View {
                     player: NearbyPlayer(
                         id: entry.id,
                         name: entry.name,
-                        skillLevel: skillLevelFromRating(entry.rating),
+                        rating: entry.rating,
                         homeCourt: entry.homeCourt,
                         distanceMiles: 0.0 // Not available in leaderboard
                     )
@@ -132,12 +132,6 @@ struct LeaderboardView: View {
                 Text("Streak").font(.caption).foregroundColor(.secondary)
             }
         }
-    }
-    
-    private func skillLevelFromRating(_ rating: Double) -> String {
-        if rating >= 1400 { return "Advanced" }
-        if rating >= 1200 { return "Intermediate" }
-        return "Beginner"
     }
 }
 

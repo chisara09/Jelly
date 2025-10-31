@@ -325,16 +325,16 @@ struct PlayerSelectionView: View {
     // Mock data - in production this would come from backend
     private var nearbyPlayers: [NearbyPlayer] {
         [
-            NearbyPlayer(name: "Marcus Johnson", skillLevel: "Advanced", homeCourt: "Central Park", distanceMiles: 0.5),
-            NearbyPlayer(name: "Sarah Williams", skillLevel: "Intermediate", homeCourt: "Riverside Courts", distanceMiles: 1.2),
-            NearbyPlayer(name: "James Chen", skillLevel: "Advanced", homeCourt: "Downtown Gym", distanceMiles: 1.8)
+            NearbyPlayer(name: "Marcus Johnson", rating: 1425.0, homeCourt: "Central Park", distanceMiles: 0.5),
+            NearbyPlayer(name: "Sarah Williams", rating: 1280.0, homeCourt: "Riverside Courts", distanceMiles: 1.2),
+            NearbyPlayer(name: "James Chen", rating: 1450.0, homeCourt: "Downtown Gym", distanceMiles: 1.8)
         ]
     }
     
     private var recentOpponents: [NearbyPlayer] {
         [
-            NearbyPlayer(name: "Tyler Brown", skillLevel: "Advanced", homeCourt: "West Side Park", distanceMiles: 2.1),
-            NearbyPlayer(name: "Alex Rivera", skillLevel: "Intermediate", homeCourt: "East Courts", distanceMiles: 3.5)
+            NearbyPlayer(name: "Tyler Brown", rating: 1410.0, homeCourt: "West Side Park", distanceMiles: 2.1),
+            NearbyPlayer(name: "Alex Rivera", rating: 1265.0, homeCourt: "East Courts", distanceMiles: 3.5)
         ]
     }
     

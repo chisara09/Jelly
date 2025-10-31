@@ -11,7 +11,7 @@ import CoreLocation
 struct NearbyPlayer: Identifiable {
     let id: UUID
     var name: String
-    var skillLevel: String // e.g., Beginner, Intermediate, Advanced
+    var rating: Double
     var homeCourt: String
     var distanceMiles: Double
     var coordinate: CLLocationCoordinate2D?
@@ -19,14 +19,14 @@ struct NearbyPlayer: Identifiable {
     init(
         id: UUID = UUID(),
         name: String,
-        skillLevel: String,
+        rating: Double,
         homeCourt: String,
         distanceMiles: Double,
         coordinate: CLLocationCoordinate2D? = nil
     ) {
         self.id = id
         self.name = name
-        self.skillLevel = skillLevel
+        self.rating = rating
         self.homeCourt = homeCourt
         self.distanceMiles = distanceMiles
         self.coordinate = coordinate
