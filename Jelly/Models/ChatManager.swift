@@ -11,6 +11,9 @@ import Combine
 
 class ChatManager: ObservableObject {
     @Published var messages: [Message] = []
+    @Published var conversations: [Conversation] = []
+    @Published var unreadCounts: [UUID: Int] = [:]
+    @Published var totalUnreadCount: Int = 0
     @Published var isLoading = false
     @Published var errorMessage: String?
     
@@ -94,6 +97,88 @@ class ChatManager: ObservableObject {
         ]
         
         messages = mockMessages
+        updateConversations()
+    }
+    
+    // MARK: - Conversation Management
+    
+    func getAllConversations() -> [Conversation] {
+        return conversations.sorted { $0.lastActivity > $1.lastActivity }
+    }
+    
+    func updateConversations() {
+        // Group messages by gameID to create conversations
+        let groupedMessages = Dictionary(grouping: messages) { $0.gameID }
+        
+        conversations = groupedMessages.compactMap { (gameID, messages) in
+            guard let lastMessage = messages.max(by: { $0.timestamp < $1.timestamp }) else {
+                return nil
+            }
+            
+            // Get opponent info from messages
+            let currentUserID = UUID() // Mock - in production from auth
+            let opponentMessage = messages.first { $0.senderID != currentUserID }
+            let opponentName = opponentMessage?.senderName ?? "Unknown"
+            let opponentID = opponentMessage?.senderID ?? UUID()
+            
+            // Calculate unread count (messages from opponent that are "unread")
+            // For now, mock as 0 - in production would track read status
+            let unreadCount = unreadCounts[gameID] ?? 0
+            
+            return Conversation(
+                gameID: gameID,
+                opponentID: opponentID,
+                opponentName: opponentName,
+                lastMessage: lastMessage,
+                unreadCount: unreadCount,
+                lastActivity: lastMessage.timestamp
+            )
+        }
+        
+        updateTotalUnreadCount()
+    }
+    
+    func markAsRead(conversationID: UUID) {
+        unreadCounts[conversationID] = 0
+        
+        // Update conversation
+        if let index = conversations.firstIndex(where: { $0.gameID == conversationID }) {
+            conversations[index].unreadCount = 0
+        }
+        
+        updateTotalUnreadCount()
+    }
+    
+    func getUnreadCount(for conversationID: UUID) -> Int {
+        return unreadCounts[conversationID] ?? 0
+    }
+    
+    func updateUnreadCount(for conversationID: UUID, increment: Bool = true) {
+        if increment {
+            unreadCounts[conversationID] = (unreadCounts[conversationID] ?? 0) + 1
+        }
+        
+        // Update conversation
+        if let index = conversations.firstIndex(where: { $0.gameID == conversationID }) {
+            conversations[index].unreadCount = unreadCounts[conversationID] ?? 0
+        }
+        
+        updateTotalUnreadCount()
+    }
+    
+    func updateConversationActivity(gameID: UUID) {
+        if let index = conversations.firstIndex(where: { $0.gameID == gameID }) {
+            conversations[index].lastActivity = Date()
+            if let lastMessage = messages.filter({ $0.gameID == gameID }).max(by: { $0.timestamp < $1.timestamp }) {
+                conversations[index].lastMessage = lastMessage
+            }
+        } else {
+            updateConversations()
+        }
+    }
+    
+    private func updateTotalUnreadCount() {
+        totalUnreadCount = unreadCounts.values.reduce(0, +)
     }
 }
 

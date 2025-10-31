@@ -38,10 +38,11 @@ General updates are summarized at the end.
    > - ✅ Include global leaderboard by default.
    > - **Status**: COMPLETE - See `/dev-files/updates/LEADERBOARDVIEW-UPDATES-COMPLETE.md`  
 
-8. **ChatView** — Messaging and chat system  
-   > - Displays all user conversations.  
-   > - Add a **chat icon to the navigation bar** for quick access.  
-   > - Include unread message indicators.
+8. **ChatView** ✅ — Messaging and chat system  
+   > - ✅ Displays all user conversations.  
+   > - ✅ Add a **chat icon to the navigation bar** for quick access.  
+   > - ✅ Include unread message indicators.
+   > - **Status**: COMPLETE - See `/dev-files/updates/CHATVIEW-UPDATES-COMPLETE.md`
 
 9. **GameDetailsView** — Match summary and analytics  
    > - Show player names, score breakdown, and match date/time.  

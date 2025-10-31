@@ -67,7 +67,7 @@ struct ChatView: View {
                     }
                     .padding()
                 }
-                .onChange(of: messages.count) { _ in
+                .onChange(of: messages.count) {
                     if let lastMessage = messages.last {
                         withAnimation {
                             proxy.scrollTo(lastMessage.id, anchor: .bottom)
@@ -147,7 +147,7 @@ struct ChatView: View {
         } message: {
             Text(chatManager.errorMessage ?? "Message not sent.")
         }
-        .onChange(of: chatManager.errorMessage) { _ in
+        .onChange(of: chatManager.errorMessage) {
             if chatManager.errorMessage != nil {
                 showChatError = true
             }
@@ -218,6 +218,157 @@ struct MessageBubble: View {
                 Spacer(minLength: 60)
             }
         }
+    }
+}
+
+// MARK: - Chat Icon With Badge Component
+struct ChatIconWithBadge: View {
+    let unreadCount: Int
+    
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            Image(systemName: "message.circle.fill")
+                .font(.title2)
+                .foregroundColor(.orange)
+            
+            if unreadCount > 0 {
+                Text(unreadCount > 99 ? "99+" : "\(unreadCount)")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 2)
+                    .background(Color.red)
+                    .clipShape(Capsule())
+                    .offset(x: 8, y: -8)
+            }
+        }
+    }
+}
+
+// MARK: - Conversations List View
+struct ConversationsListView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var chatManager: ChatManager
+    @StateObject private var gameManager = GameManager()
+    
+    var sortedConversations: [Conversation] {
+        chatManager.getAllConversations()
+    }
+    
+    var body: some View {
+        NavigationStack {
+            Group {
+                if sortedConversations.isEmpty {
+                    EmptyConversationsView()
+                } else {
+                    List(sortedConversations) { conversation in
+                        NavigationLink(destination: chatDestination(for: conversation)) {
+                            ConversationRow(conversation: conversation)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Messages")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+    
+    private func chatDestination(for conversation: Conversation) -> some View {
+        // Find the game associated with this conversation
+        let games = gameManager.getAllGames()
+        let game = games.first { $0.id == conversation.gameID } ?? Game(
+            challengerID: UUID(),
+            opponentID: conversation.opponentID,
+            opponentName: conversation.opponentName,
+            courtName: "TBD",
+            courtAddress: "TBD",
+            scheduledDate: Date(),
+            rules: "First to 21"
+        )
+        
+        return ChatView(game: game, opponentName: conversation.opponentName)
+    }
+}
+
+// MARK: - Conversation Row Component
+struct ConversationRow: View {
+    let conversation: Conversation
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Avatar
+            Circle()
+                .fill(Color.orange.opacity(0.2))
+                .frame(width: 50, height: 50)
+                .overlay {
+                    Text(conversation.opponentInitials)
+                        .font(.headline)
+                        .foregroundColor(.orange)
+                }
+            
+            // Content
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(conversation.opponentName)
+                        .font(.headline)
+                        .fontWeight(conversation.unreadCount > 0 ? .bold : .regular)
+                    
+                    Spacer()
+                    
+                    Text(conversation.timeAgo)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                if let lastMessage = conversation.lastMessage {
+                    Text(lastMessage.text)
+                        .font(.subheadline)
+                        .foregroundColor(conversation.unreadCount > 0 ? .primary : .secondary)
+                        .lineLimit(2)
+                }
+            }
+            
+            // Unread badge
+            if conversation.unreadCount > 0 {
+                Text("\(conversation.unreadCount)")
+                    .font(.caption)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.orange)
+                    .clipShape(Capsule())
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+// MARK: - Empty Conversations View
+struct EmptyConversationsView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "message.bubble")
+                .font(.system(size: 60))
+                .foregroundColor(.orange.opacity(0.5))
+            
+            Text("No conversations yet")
+                .font(.headline)
+                .foregroundColor(.secondary)
+            
+            Text("Start playing games to chat with opponents")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+        }
+        .frame(maxHeight: .infinity)
     }
 }
 

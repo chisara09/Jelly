@@ -11,11 +11,13 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject var authManager: AuthenticationManager
     @StateObject private var gameManager = GameManager()
+    @StateObject private var chatManager = ChatManager()
     @State private var showCreateChallenge = false
     @State private var showStatsError = false
     @State private var isLoadingStats = false
     @State private var showMatchHistory = false
     @State private var selectedStatType: StatType?
+    @State private var showChatsList = false
     
     // Mock stats - in production this would come from a StatsManager
     @State private var stats = PlayerStats(
@@ -144,6 +146,17 @@ struct HomeView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Home")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showChatsList = true }) {
+                        ChatIconWithBadge(unreadCount: chatManager.totalUnreadCount)
+                    }
+                }
+            }
+            .sheet(isPresented: $showChatsList) {
+                ConversationsListView()
+                    .environmentObject(chatManager)
+            }
             .sheet(isPresented: $showCreateChallenge) {
                 PlayerSelectionView()
                     .environmentObject(gameManager)

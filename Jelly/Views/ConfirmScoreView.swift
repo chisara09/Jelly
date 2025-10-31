@@ -74,7 +74,7 @@ struct ConfirmScoreView: View {
             } message: {
                 Text(gameManager.errorMessage ?? "Error")
             }
-            .onChange(of: gameManager.errorMessage) { _ in
+            .onChange(of: gameManager.errorMessage) {
                 if gameManager.errorMessage != nil {
                     showError = true
                 }

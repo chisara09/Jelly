@@ -43,6 +43,10 @@ class GameManager: ObservableObject {
         games = mockGames
     }
     
+    func getAllGames() -> [Game] {
+        return games
+    }
+    
     func getUpcomingGames() -> [Game] {
         return games.filter { $0.isUpcoming }
     }
