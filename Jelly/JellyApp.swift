@@ -7,23 +7,21 @@
 
 import SwiftUI
 import UserNotifications
+import FirebaseCore
+import UIKit
 
-@main
-struct JellyApp: App {
-    @StateObject private var notificationManager = NotificationManager.shared
-    
-    init() {
+// MARK: - App Delegate
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        // Initialize Firebase
+        FirebaseApp.configure()
+        
+        // Setup notifications
         setupNotifications()
-    }
-    
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-                .environmentObject(notificationManager)
-                .task {
-                    _ = await notificationManager.requestPermission()
-                }
-        }
+        
+        return true
     }
     
     private func setupNotifications() {
@@ -63,6 +61,26 @@ struct JellyApp: App {
             chatCategory,
             gameReminderCategory
         ])
+    }
+}
+
+// MARK: - App
+
+@main
+struct JellyApp: App {
+    // Register app delegate for Firebase setup
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    
+    @StateObject private var notificationManager = NotificationManager.shared
+    
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(notificationManager)
+                .task {
+                    _ = await notificationManager.requestPermission()
+                }
+        }
     }
 }
 

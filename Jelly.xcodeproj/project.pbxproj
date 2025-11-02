@@ -6,7 +6,17 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		7430936B2EB7CC780067ECB5 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7430936A2EB7CC780067ECB5 /* GoogleService-Info.plist */; };
+		7430936E2EB7D1B00067ECB5 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 7430936D2EB7D1B00067ECB5 /* FirebaseAuth */; };
+		743093702EB7D1B10067ECB5 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 7430936F2EB7D1B10067ECB5 /* FirebaseFirestore */; };
+		743093722EB7D1B10067ECB5 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 743093712EB7D1B10067ECB5 /* FirebaseFunctions */; };
+		743093742EB7D1B10067ECB5 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 743093732EB7D1B10067ECB5 /* FirebaseMessaging */; };
+		743093762EB7D1B10067ECB5 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 743093752EB7D1B10067ECB5 /* FirebaseStorage */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		7430936A2EB7CC780067ECB5 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		74EAAA132EAE8F9100F9A1CE /* Jelly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Jelly.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		74EAABE82EB5269900F9A1CE /* NYC-Location.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "NYC-Location.gpx"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -24,6 +34,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				743093742EB7D1B10067ECB5 /* FirebaseMessaging in Frameworks */,
+				743093722EB7D1B10067ECB5 /* FirebaseFunctions in Frameworks */,
+				7430936E2EB7D1B00067ECB5 /* FirebaseAuth in Frameworks */,
+				743093762EB7D1B10067ECB5 /* FirebaseStorage in Frameworks */,
+				743093702EB7D1B10067ECB5 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -33,6 +48,7 @@
 		74EAAA0A2EAE8F9100F9A1CE = {
 			isa = PBXGroup;
 			children = (
+				7430936A2EB7CC780067ECB5 /* GoogleService-Info.plist */,
 				74EAABE82EB5269900F9A1CE /* NYC-Location.gpx */,
 				74EAAA152EAE8F9100F9A1CE /* Jelly */,
 				74EAAA142EAE8F9100F9A1CE /* Products */,
@@ -67,6 +83,11 @@
 			);
 			name = Jelly;
 			packageProductDependencies = (
+				7430936D2EB7D1B00067ECB5 /* FirebaseAuth */,
+				7430936F2EB7D1B10067ECB5 /* FirebaseFirestore */,
+				743093712EB7D1B10067ECB5 /* FirebaseFunctions */,
+				743093732EB7D1B10067ECB5 /* FirebaseMessaging */,
+				743093752EB7D1B10067ECB5 /* FirebaseStorage */,
 			);
 			productName = Jelly;
 			productReference = 74EAAA132EAE8F9100F9A1CE /* Jelly.app */;
@@ -96,6 +117,9 @@
 			);
 			mainGroup = 74EAAA0A2EAE8F9100F9A1CE;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				7430936C2EB7D1B00067ECB5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 74EAAA142EAE8F9100F9A1CE /* Products */;
 			projectDirPath = "";
@@ -111,6 +135,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7430936B2EB7CC780067ECB5 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -349,6 +374,45 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7430936C2EB7D1B00067ECB5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7430936D2EB7D1B00067ECB5 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7430936C2EB7D1B00067ECB5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		7430936F2EB7D1B10067ECB5 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7430936C2EB7D1B00067ECB5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		743093712EB7D1B10067ECB5 /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7430936C2EB7D1B00067ECB5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
+		};
+		743093732EB7D1B10067ECB5 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7430936C2EB7D1B00067ECB5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		743093752EB7D1B10067ECB5 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7430936C2EB7D1B00067ECB5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 74EAAA0B2EAE8F9100F9A1CE /* Project object */;
 }

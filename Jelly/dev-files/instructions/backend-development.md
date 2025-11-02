@@ -52,15 +52,29 @@ Your app currently uses local storage (UserDefaults) for data. To make it fully 
 ### 1.4 Initialize Firebase in Your App
 In `JellyApp.swift` or similar entry point, add:
 
+**Recommended approach** (using UIApplicationDelegate):
+
 ```swift
 import SwiftUI
 import FirebaseCore
+import UIKit
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        // Initialize Firebase
+        FirebaseApp.configure()
+        
+        // Setup any other initialization here if needed
+        
+        return true
+    }
+}
 
 @main
 struct JellyApp: App {
-    init() {
-        FirebaseApp.configure()
-    }
+    // Register app delegate for Firebase setup
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
     var body: some Scene {
         WindowGroup {
@@ -69,6 +83,8 @@ struct JellyApp: App {
     }
 }
 ```
+
+**Note**: If you have existing notification setup or other initialization code, you can add it to the `AppDelegate` class's `didFinishLaunchingWithOptions` method.
 
 ### 1.5 Enable Firebase Services
 
@@ -93,12 +109,29 @@ struct JellyApp: App {
 5. Click "Done"
 
 #### Cloud Messaging:
+**Important Note**: Firebase Cloud Messaging (FCM) is **free**, but you need an **Apple Developer account ($99/year)** to set up APNs (Apple Push Notification service), which is required for ANY push notifications on iOS devices. Apple requires a paid developer account to use APNs - this is not specific to Firebase, but a requirement for all iOS push notification services.
+
+**Option A: Set up Push Notifications (Requires Apple Developer Account)**
 1. Go to Firebase Console → Cloud Messaging
 2. Set up APNs authentication:
-   - Go to your Apple Developer account
-   - Create APNs Authentication Key (.p8 file)
-   - Upload to Firebase Console under Cloud Messaging → Apple app configuration
+   - Go to your Apple Developer account (developer.apple.com)
+   - Navigate to Certificates, Identifiers & Profiles → Keys
+   - Click "+" to create a new key
+   - Enable "Apple Push Notifications service (APNs)"
+   - Download the .p8 key file (you can only download once!)
+   - Note your Team ID and Key ID
+   - Upload the .p8 file to Firebase Console under Cloud Messaging → Apple app configuration
    - Enter your Team ID and Key ID
+
+**Option B: Use Local Notifications Instead (Free Alternative)**
+If you don't have an Apple Developer account, you can use **local notifications** instead:
+- **Local notifications** work even without an Apple Developer account
+- They're scheduled on the device itself (not from a server)
+- Best for: Reminders, scheduled alerts, in-app notifications
+- Limitations: Can't send notifications when app is closed unless triggered by app launch/background tasks
+- You can implement local notifications using `UNUserNotificationCenter` (already in your code)
+
+**For now, you can skip FCM setup and use local notifications**. You can add FCM later when you get an Apple Developer account.
 
 ---
 
@@ -1237,16 +1270,26 @@ class SafetyManager {
 
 ---
 
-## Step 12: Set Up Push Notifications
+## Step 12: Set Up Notifications
 
-### 12.1 Configure iOS App for Notifications
+### 12.1 Choose Your Notification Strategy
+
+**Important**: You have two options:
+- **Option A: Push Notifications (FCM)** - Requires Apple Developer account ($99/year)
+- **Option B: Local Notifications** - **FREE**, works without Apple Developer account
+
+**For development/testing without an Apple Developer account, use Option B (Local Notifications).**
+
+### 12.2 Option A: Push Notifications with Firebase Cloud Messaging (Requires Apple Developer Account)
+
+#### Configure iOS App for Push Notifications
 
 1. In Xcode, go to **Signing & Capabilities**
 2. Add **Push Notifications** capability
 3. Add **Background Modes** capability
 4. Enable **Remote notifications**
 
-### 12.2 Update NotificationManager.swift
+#### Update NotificationManager.swift for FCM
 
 Update your `Managers/NotificationManager.swift`:
 
@@ -1423,6 +1466,165 @@ exports.sendNotification = functions.firestore
 ```
 
 5. Deploy: `firebase deploy --only functions`
+
+---
+
+### 12.3 Option B: Local Notifications (FREE - No Apple Developer Account Required)
+
+Local notifications are scheduled and delivered by the device itself. They work great for reminders, alerts, and can be triggered when your app detects changes in Firestore (using real-time listeners).
+
+#### Update NotificationManager.swift for Local Notifications
+
+You can enhance your existing `NotificationManager.swift` to use local notifications:
+
+```swift
+import Foundation
+import UserNotifications
+import FirebaseFirestore
+import FirebaseAuth
+
+class NotificationManager: NSObject, ObservableObject {
+    @Published var deviceToken: String?
+    private let db = Firestore.firestore()
+    
+    override init() {
+        super.init()
+        UNUserNotificationCenter.current().delegate = self
+    }
+    
+    func requestPermission() async -> Bool {
+        do {
+            let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+            let granted = try await UNUserNotificationCenter.current().requestAuthorization(options: authOptions)
+            return granted
+        } catch {
+            return false
+        }
+    }
+    
+    // Schedule a local notification
+    func scheduleNotification(
+        title: String,
+        body: String,
+        identifier: String,
+        date: Date? = nil,
+        userInfo: [AnyHashable: Any] = [:]
+    ) async {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+        content.userInfo = userInfo
+        content.categoryIdentifier = "GENERAL"
+        
+        var trigger: UNNotificationTrigger?
+        
+        if let date = date, date > Date() {
+            let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: date)
+            trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        } else {
+            // Trigger immediately (0.1 seconds from now)
+            trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+        }
+        
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+        
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+        } catch {
+            print("Error scheduling notification: \(error)")
+        }
+    }
+    
+    // Cancel a scheduled notification
+    func cancelNotification(identifier: String) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
+    }
+    
+    // Example: Schedule game reminder (1 hour before game)
+    func scheduleGameReminder(gameId: String, gameDate: Date, opponentName: String) async {
+        let reminderDate = gameDate.addingTimeInterval(-3600) // 1 hour before
+        
+        await scheduleNotification(
+            title: "Game Reminder",
+            body: "Your game with \(opponentName) starts in 1 hour!",
+            identifier: "game_reminder_\(gameId)",
+            date: reminderDate,
+            userInfo: ["type": "game_reminder", "gameId": gameId]
+        )
+    }
+    
+    // Listen to Firestore changes and show notifications
+    func listenForNewMessages(userId: String) {
+        db.collection("messages")
+            .whereField("isRead.\(userId)", isEqualTo: false)
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let documents = snapshot?.documents else { return }
+                
+                for doc in documents {
+                    let data = doc.data()
+                    let senderName = data["senderName"] as? String ?? "Someone"
+                    let text = data["text"] as? String ?? ""
+                    let gameId = data["gameID"] as? String ?? ""
+                    
+                    Task {
+                        await self?.scheduleNotification(
+                            title: "New message from \(senderName)",
+                            body: text,
+                            identifier: "message_\(doc.documentID)",
+                            userInfo: ["type": "chat_message", "gameId": gameId]
+                        )
+                    }
+                }
+            }
+    }
+}
+
+extension NotificationManager: UNUserNotificationCenterDelegate {
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        // Show notification even when app is in foreground
+        completionHandler([.banner, .sound, .badge])
+    }
+    
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let userInfo = response.notification.request.content.userInfo
+        
+        if let gameId = userInfo["gameId"] as? String {
+            // Navigate to game details
+            // Use NotificationCenter or a coordinator to handle navigation
+            NotificationCenter.default.post(name: .navigateToGame, object: gameId)
+        }
+        
+        completionHandler()
+    }
+}
+
+extension Notification.Name {
+    static let navigateToGame = Notification.Name("navigateToGame")
+}
+```
+
+#### Key Advantages of Local Notifications:
+- ✅ **FREE** - No Apple Developer account needed
+- ✅ Works in development and testing
+- ✅ Can be triggered by Firestore real-time listeners when app is open
+- ✅ Perfect for scheduled reminders (game times, etc.)
+- ✅ Simple to implement
+
+#### Limitations:
+- ❌ Can't notify when app is completely closed (unless scheduled in advance)
+- ❌ Requires app to be running or recently used for real-time notifications
+- ❌ Less reliable for instant cross-device notifications
+
+**Recommendation**: Start with local notifications for development, then migrate to FCM push notifications when you get an Apple Developer account for production.
 
 ---
 
