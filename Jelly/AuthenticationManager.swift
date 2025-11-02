@@ -27,8 +27,22 @@ class AuthenticationManager: ObservableObject {
     }
     
     init() {
-        // Reset all stored users on startup (for development)
-        // loadUser()  // Commented out to start fresh - app will always show login screen
+        // Auto-login for development convenience
+        if let savedUser = getSavedUser() {
+            // Load existing user if available
+            self.currentUser = savedUser
+            self.isAuthenticated = true
+        } else {
+            // Auto-create and login a test user if none exists
+            let testUser = User(
+                email: "test@jelly.app",
+                name: "Test User",
+                createdAt: Date()
+            )
+            self.currentUser = testUser
+            self.isAuthenticated = true
+            saveUser()
+        }
     }
     
     func signUp(email: String, password: String, name: String) -> String? {
