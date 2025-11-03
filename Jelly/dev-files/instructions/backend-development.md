@@ -154,12 +154,9 @@ Firestore Root
 │   ├── photoURL: String?
 │   ├── bio: String
 │   ├── homeCourtID: String?
-│   ├── location: {
-│   │     latitude: Double,
-│   │     longitude: Double,
-│   │     lastUpdated: Timestamp
-│   │   }
-│   └── settings: {
+│   ├── location: GeoPoint (recommended for geospatial queries)
+│   ├── lastUpdated: Timestamp (for location timestamp)
+│   └── settings: { (optional, can add later)
 │         notificationsEnabled: Boolean,
 │         darkMode: Boolean
 │       }
@@ -216,22 +213,20 @@ Firestore Root
 ```
 
 ### Firestore Indexes to Create:
+
+**Important**: Single field indexes are NOT necessary - Firestore creates them automatically. Only create composite indexes for compound queries.
+
 1. **games collection**:
    - `challengerID` (Ascending) + `status` (Ascending)
    - `opponentID` (Ascending) + `status` (Ascending)
-   - `scheduledDate` (Ascending)
 
 2. **messages collection**:
    - `gameID` (Ascending) + `timestamp` (Descending)
 
-3. **stats collection**:
-   - `rating` (Descending) - for leaderboard
-
-4. **profiles collection** (for geospatial queries):
-   - `location.latitude` + `location.longitude` (if using geohash)
-   - Or use Firestore GeoPoint queries
-
-**Note**: Firestore will prompt you to create indexes when you run queries that need them. You can also create them manually in the Firebase Console.
+**Note**: 
+- Firestore will automatically prompt you to create composite indexes when you run queries that need them.
+- Single field indexes (like `scheduledDate`, `rating`, or `location`) are automatically created and do not need to be configured manually.
+- Run your queries in your app code to get the exact index links from Firebase Console.
 
 ---
 

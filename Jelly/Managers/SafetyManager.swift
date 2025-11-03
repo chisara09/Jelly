@@ -5,7 +5,9 @@
 //  Created by Godfrey Chisara Ojiako on 10/26/25.
 //
 
-import SwiftUI
+import Foundation
+import FirebaseFirestore
+import FirebaseAuth
 import Combine
 
 // F-013: Safety Tools – Block/report users
@@ -16,61 +18,149 @@ class SafetyManager: ObservableObject {
     
     static let shared = SafetyManager()
     
-    private let blockedUsersKey = "blockedUsers"
-    private let reportedUsersKey = "reportedUsers"
+    private let db = Firestore.firestore()
     
     private init() {
-        loadData()
+        // Load blocked users from Firestore on init
+        Task {
+            await loadBlockedUsers()
+        }
     }
     
     // MARK: - Block User
     
-    func blockUser(_ userID: UUID) -> String? {
-        guard !blockedUsers.contains(userID) else {
-            return "User already blocked."
+    func blockUser(blockedID: String) async throws {
+        guard let currentUserID = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "Not authenticated"])
         }
         
-        blockedUsers.append(userID)
+        // Add to blocked collection
+        try await db.collection("blocked")
+            .document(currentUserID)
+            .collection("blocked")
+            .document(blockedID)
+            .setData([
+                "createdAt": Timestamp(date: Date())
+            ])
         
-        // Try to save
-        if !saveData() {
-            return "Couldn't update."
+        // Update local state
+        if let blockedUUID = UUID(uuidString: blockedID) {
+            await MainActor.run {
+                if !self.blockedUsers.contains(blockedUUID) {
+                    self.blockedUsers.append(blockedUUID)
+                }
+            }
         }
         
-        return nil // No error
+        // Cancel any pending games between users
+        let pendingGames = try await db.collection("games")
+            .whereField("status", isEqualTo: "pending")
+            .getDocuments()
+        
+        let batch = db.batch()
+        for doc in pendingGames.documents {
+            let gameData = doc.data()
+            let challengerID = gameData["challengerID"] as? String ?? ""
+            let opponentID = gameData["opponentID"] as? String ?? ""
+            
+            // Check if this game involves both users
+            if (challengerID == currentUserID && opponentID == blockedID) ||
+               (challengerID == blockedID && opponentID == currentUserID) {
+                batch.updateData([
+                    "status": "canceled",
+                    "updatedAt": Timestamp(date: Date())
+                ], forDocument: doc.reference)
+            }
+        }
+        try await batch.commit()
     }
     
-    func unblockUser(_ userID: UUID) {
-        blockedUsers.removeAll(where: { $0 == userID })
-        _ = saveData()
+    func unblockUser(blockedID: String) async throws {
+        guard let currentUserID = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "Auth", code: 401)
+        }
+        
+        try await db.collection("blocked")
+            .document(currentUserID)
+            .collection("blocked")
+            .document(blockedID)
+            .delete()
+        
+        // Update local state
+        if let blockedUUID = UUID(uuidString: blockedID) {
+            await MainActor.run {
+                self.blockedUsers.removeAll(where: { $0 == blockedUUID })
+            }
+        }
     }
     
-    func isBlocked(_ userID: UUID) -> Bool {
-        return blockedUsers.contains(userID)
+    func isBlocked(userID: String) async -> Bool {
+        guard let currentUserID = Auth.auth().currentUser?.uid else {
+            return false
+        }
+        
+        do {
+            let doc = try await db.collection("blocked")
+                .document(currentUserID)
+                .collection("blocked")
+                .document(userID)
+                .getDocument()
+            return doc.exists
+        } catch {
+            return false
+        }
     }
     
     // MARK: - Report User
     
-    func reportUser(_ userID: UUID, reason: ReportReason) -> String? {
-        guard !reportedUsers.contains(userID) else {
-            return "User already reported."
+    func reportUser(reportedID: String, reason: String, description: String) async throws {
+        guard let currentUserID = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "Not authenticated"])
         }
         
-        reportedUsers.append(userID)
+        let reportData: [String: Any] = [
+            "reporterID": currentUserID,
+            "reportedID": reportedID,
+            "reason": reason,
+            "description": description,
+            "createdAt": Timestamp(date: Date()),
+            "status": "pending"
+        ]
         
-        // Try to save
-        if !saveData() {
-            return "Couldn't update."
+        try await db.collection("reports").addDocument(data: reportData)
+        
+        // Update local state
+        if let reportedUUID = UUID(uuidString: reportedID) {
+            await MainActor.run {
+                if !self.reportedUsers.contains(reportedUUID) {
+                    self.reportedUsers.append(reportedUUID)
+                }
+            }
         }
-        
-        // In production, this would send to backend
-        print("Reported user \(userID) for reason: \(reason)")
-        
-        return nil
     }
     
-    func isReported(_ userID: UUID) -> Bool {
-        return reportedUsers.contains(userID)
+    func getBlockedUsers() async throws -> [String] {
+        guard let currentUserID = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "Auth", code: 401)
+        }
+        
+        let snapshot = try await db.collection("blocked")
+            .document(currentUserID)
+            .collection("blocked")
+            .getDocuments()
+        
+        return snapshot.documents.map { $0.documentID }
+    }
+    
+    private func loadBlockedUsers() async {
+        do {
+            let blockedIDs = try await getBlockedUsers()
+            await MainActor.run {
+                self.blockedUsers = blockedIDs.compactMap { UUID(uuidString: $0) }
+            }
+        } catch {
+            print("Error loading blocked users: \(error)")
+        }
     }
     
     // MARK: - Filter Messages
@@ -94,40 +184,6 @@ class SafetyManager: ObservableObject {
     func containsBadWords(_ text: String) -> Bool {
         let filtered = filterBadWords(text)
         return filtered != text
-    }
-    
-    // MARK: - Data Persistence
-    
-    private func loadData() {
-        // Load blocked users
-        if let data = UserDefaults.standard.data(forKey: blockedUsersKey),
-           let users = try? JSONDecoder().decode([UUID].self, from: data) {
-            blockedUsers = users
-        }
-        
-        // Load reported users
-        if let data = UserDefaults.standard.data(forKey: reportedUsersKey),
-           let users = try? JSONDecoder().decode([UUID].self, from: data) {
-            reportedUsers = users
-        }
-    }
-    
-    private func saveData() -> Bool {
-        // Save blocked users
-        if let data = try? JSONEncoder().encode(blockedUsers) {
-            UserDefaults.standard.set(data, forKey: blockedUsersKey)
-        } else {
-            return false
-        }
-        
-        // Save reported users
-        if let data = try? JSONEncoder().encode(reportedUsers) {
-            UserDefaults.standard.set(data, forKey: reportedUsersKey)
-        } else {
-            return false
-        }
-        
-        return true
     }
 }
 
