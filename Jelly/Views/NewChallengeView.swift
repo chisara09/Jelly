@@ -102,24 +102,32 @@ struct NewChallengeView: View {
         isSending = true
         errorMessage = nil
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            let newGame = gameManager.createChallenge(
-                to: player.id,
-                opponentName: player.name,
-                courtName: courtName,
-                courtAddress: courtAddress,
-                scheduledDate: selectedDate,
-                rules: rules
-            )
-            
-            if let err = gameManager.errorMessage {
-                errorMessage = err
-                isSending = false
-            } else if newGame == nil {
-                errorMessage = "Couldn't send."
-                isSending = false
-            } else {
-                dismiss()
+        Task {
+            do {
+                // Convert UUID to String for Firebase
+                let opponentID = player.id.uuidString
+                
+                // Get court ID - if selectedCourt exists, use its ID, otherwise create a temporary one
+                // In production, you'd want to ensure the court exists in Firestore first
+                let courtID = selectedCourt?.id.uuidString ?? UUID().uuidString
+                
+                let gameId = try await gameManager.createChallenge(
+                    opponentID: opponentID,
+                    opponentName: player.name,
+                    courtID: courtID,
+                    scheduledDate: selectedDate,
+                    rules: rules
+                )
+                
+                await MainActor.run {
+                    isSending = false
+                    dismiss()
+                }
+            } catch {
+                await MainActor.run {
+                    isSending = false
+                    errorMessage = FirebaseErrorHandler.userFriendlyMessage(for: error)
+                }
             }
         }
     }

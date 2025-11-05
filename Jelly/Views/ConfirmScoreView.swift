@@ -83,16 +83,34 @@ struct ConfirmScoreView: View {
     }
     
     private func confirm() {
-        gameManager.confirmScore(gameID: game.id)
-        if gameManager.errorMessage == nil {
-            dismiss()
+        Task {
+            do {
+                let gameIdString = game.id.uuidString
+                try await gameManager.confirmScore(gameId: gameIdString)
+                await MainActor.run {
+                    dismiss()
+                }
+            } catch {
+                await MainActor.run {
+                    // Error handling - could show error message
+                }
+            }
         }
     }
     
     private func dispute() {
-        gameManager.disputeScore(gameID: game.id)
-        if gameManager.errorMessage == nil {
-            dismiss()
+        Task {
+            do {
+                let gameIdString = game.id.uuidString
+                try await gameManager.disputeScore(gameId: gameIdString)
+                await MainActor.run {
+                    dismiss()
+                }
+            } catch {
+                await MainActor.run {
+                    // Error handling - could show error message
+                }
+            }
         }
     }
 }

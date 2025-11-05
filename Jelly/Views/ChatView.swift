@@ -28,76 +28,91 @@ struct ChatView: View {
     private let currentUserName = "You"
     
     private var messages: [Message] {
-        chatManager.getMessages(for: game.id)
+        chatManager.messages.filter { $0.gameID == game.id }
     }
     
     private var opponentID: UUID {
         game.opponentID
     }
     
+    private var messagesListView: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    if messages.isEmpty {
+                        emptyMessagesView
+                    } else {
+                        messagesListContent
+                    }
+                }
+                .padding()
+            }
+            .onChange(of: messages.count) {
+                scrollToBottom(proxy: proxy)
+            }
+            .onAppear {
+                scrollToBottom(proxy: proxy)
+            }
+        }
+    }
+    
+    private var emptyMessagesView: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "message.bubble")
+                .font(.largeTitle)
+                .foregroundColor(.secondary.opacity(0.5))
+            
+            Text("No messages yet")
+                .foregroundColor(.secondary)
+            
+            Text("Start the conversation!")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 60)
+    }
+    
+    private var messagesListContent: some View {
+        ForEach(messages) { message in
+            MessageBubble(
+                message: message,
+                isFromCurrentUser: message.senderID == currentUserID
+            )
+        }
+    }
+    
+    private func scrollToBottom(proxy: ScrollViewProxy) {
+        if let lastMessage = messages.last {
+            withAnimation {
+                proxy.scrollTo(lastMessage.id, anchor: .bottom)
+            }
+        }
+    }
+    
+    private var inputBox: some View {
+        HStack(spacing: 12) {
+            TextField("Type a message...", text: $messageText, axis: .vertical)
+                .textFieldStyle(.roundedBorder)
+                .lineLimit(1...4)
+            
+            Button(action: sendMessage) {
+                Image(systemName: "paperplane.fill")
+                    .foregroundColor(.white)
+                    .frame(width: 44, height: 44)
+                    .background(Color.orange)
+                    .clipShape(Circle())
+            }
+            .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
+        .padding()
+        .background(Color(.systemBackground))
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
-            // Messages List
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(spacing: 12) {
-                        if messages.isEmpty {
-                            VStack(spacing: 16) {
-                                Image(systemName: "message.bubble")
-                                    .font(.largeTitle)
-                                    .foregroundColor(.secondary.opacity(0.5))
-                                
-                                Text("No messages yet")
-                                    .foregroundColor(.secondary)
-                                
-                                Text("Start the conversation!")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, 60)
-                        } else {
-                            ForEach(messages) { message in
-                                MessageBubble(
-                                    message: message,
-                                    isFromCurrentUser: message.senderID == currentUserID
-                                )
-                            }
-                        }
-                    }
-                    .padding()
-                }
-                .onChange(of: messages.count) {
-                    if let lastMessage = messages.last {
-                        withAnimation {
-                            proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                        }
-                    }
-                }
-                .onAppear {
-                    if let lastMessage = messages.last {
-                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                    }
-                }
-            }
-            
-            // Input Box
-            HStack(spacing: 12) {
-                TextField("Type a message...", text: $messageText, axis: .vertical)
-                    .textFieldStyle(.roundedBorder)
-                    .lineLimit(1...4)
-                
-                Button(action: sendMessage) {
-                    Image(systemName: "paperplane.fill")
-                        .foregroundColor(.white)
-                        .frame(width: 44, height: 44)
-                        .background(Color.orange)
-                        .clipShape(Circle())
-                }
-                .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            }
-            .padding()
-            .background(Color(.systemBackground))
+            messagesListView
+            inputBox
         }
         .navigationTitle(opponentName)
         .navigationBarTitleDisplayMode(.inline)
@@ -126,12 +141,19 @@ struct ChatView: View {
         .alert("Block User", isPresented: $showBlockAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Block", role: .destructive) {
-                if let error = safetyManager.blockUser(opponentID) {
-                    errorMessage = error
-                    showError = true
-                } else {
-                    // Show confirmation and dismiss
-                    dismiss()
+                Task {
+                    do {
+                        let blockedID = opponentID.uuidString
+                        try await safetyManager.blockUser(blockedID: blockedID)
+                        await MainActor.run {
+                            dismiss()
+                        }
+                    } catch {
+                        await MainActor.run {
+                            errorMessage = FirebaseErrorHandler.userFriendlyMessage(for: error)
+                            showError = true
+                        }
+                    }
                 }
             }
         } message: {
@@ -161,14 +183,19 @@ struct ChatView: View {
         // Filter bad words before sending
         let filteredText = safetyManager.filterBadWords(trimmedText)
         
-        chatManager.sendMessage(
-            gameID: game.id,
-            senderID: currentUserID,
-            senderName: currentUserName,
-            text: filteredText
-        )
-        
-        messageText = ""
+        Task {
+            do {
+                let gameIdString = game.id.uuidString
+                try await chatManager.sendMessage(gameId: gameIdString, text: filteredText)
+                await MainActor.run {
+                    messageText = ""
+                }
+            } catch {
+                await MainActor.run {
+                    // Error handling - could show error message
+                }
+            }
+        }
     }
 }
 

@@ -540,7 +540,6 @@ struct SettingsView: View {
                 Button("Cancel", role: .cancel) { }
                 Button("Delete", role: .destructive) {
                     authManager.logout()
-                    authManager.resetAllData()
                     dismiss()
                 }
             } message: {
@@ -678,7 +677,15 @@ struct BlockedUsersView: View {
                             }
                             Spacer()
                             Button(action: {
-                                safetyManager.unblockUser(userID)
+                                Task {
+                                    do {
+                                        let blockedID = userID.uuidString
+                                        try await safetyManager.unblockUser(blockedID: blockedID)
+                                    } catch {
+                                        // Handle error - could show alert
+                                        print("Error unblocking user: \(error)")
+                                    }
+                                }
                             }) {
                                 Text("Unblock")
                                     .font(.caption)

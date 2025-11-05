@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var authManager = AuthenticationManager()
+    @EnvironmentObject var notificationManager: NotificationManager
     
     var body: some View {
         Group {
@@ -35,9 +36,30 @@ struct ContentView: View {
                         }
                 }
                 .environmentObject(authManager)
+                .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
+                    if isAuthenticated {
+                        // Start listening for real-time notifications when user is authenticated
+                        if let userId = authManager.currentUser?.id {
+                            notificationManager.startListening(userId: userId)
+                        }
+                    } else {
+                        // Stop listening when user logs out
+                        notificationManager.stopListening()
+                    }
+                }
+                .task {
+                    // Start listening for real-time notifications when user is authenticated
+                    if let userId = authManager.currentUser?.id {
+                        notificationManager.startListening(userId: userId)
+                    }
+                }
             } else {
                 WelcomeView()
                     .environmentObject(authManager)
+                    .onAppear {
+                        // Stop listening when user logs out
+                        notificationManager.stopListening()
+                    }
             }
         }
     }

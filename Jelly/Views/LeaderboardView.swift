@@ -45,7 +45,9 @@ struct LeaderboardView: View {
                         ProgressView()
                     } else {
                         Button {
-                            leaderboardManager.regenerateMockSnapshot()
+                            Task {
+                                await leaderboardManager.fetchLeaderboard()
+                            }
                         } label: {
                             Image(systemName: "arrow.clockwise")
                         }
@@ -82,7 +84,9 @@ struct LeaderboardView: View {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 Button("Retry") {
-                    leaderboardManager.regenerateMockSnapshot()
+                    Task {
+                        await leaderboardManager.fetchLeaderboard()
+                    }
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.orange)

@@ -127,9 +127,9 @@ struct LoginView: View {
         isLoading = true
         errorMessage = nil
         
-        // Simulate network delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            let error = authManager.login(email: email, password: password)
+        // Call async login function using Task
+        Task { @MainActor in
+            let error = await authManager.login(email: email, password: password)
             
             if let error = error {
                 errorMessage = error

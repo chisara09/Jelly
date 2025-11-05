@@ -1725,9 +1725,17 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     // Profile photos
-    match /profile_photos/{userId}.jpg {
+    // Store files as: profile_photos/{userId}.jpg
+    // The {fileName} captures the entire filename including extension
+    match /profile_photos/{fileName} {
+      // Extract userId from filename (assuming format: userId.jpg)
+      function getUserId() {
+        return fileName.split('.')[0];
+      }
+      
       allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      // Only allow users to write their own profile photo
+      allow write: if request.auth != null && request.auth.uid == getUserId();
     }
     
     // Game photos (if you add photo proof for scores)
@@ -1745,36 +1753,79 @@ service firebase.storage {
 
 ### 15.1 Create Seed Script (Optional)
 
-You can seed courts data manually in Firebase Console or create a Swift script:
+A seed script has been created at `Managers/SeedDataManager.swift` that includes popular basketball courts from major cities.
+
+**To use the seed script:**
+
+**Option 1: Run from your app (recommended for development)**
+Add this to your app initialization (e.g., in `JellyApp.swift` or a settings view):
 
 ```swift
-// SeedCourts.swift - Run once to populate initial courts
-import Foundation
+// In JellyApp.swift or a development settings view
 import FirebaseCore
-import FirebaseFirestore
 
-func seedCourts() async {
-    FirebaseApp.configure()
-    let db = Firestore.firestore()
-    
-    let courts: [[String: Any]] = [
-        [
-            "name": "Rucker Park",
-            "address": "155th St & Frederick Douglass Blvd, New York, NY",
-            "latitude": 40.8276,
-            "longitude": -73.9442,
-            "createdAt": Timestamp(date: Date())
-        ],
-        // Add more courts...
-    ]
-    
-    for courtData in courts {
-        try? await db.collection("courts").addDocument(data: courtData)
+// Only run in debug mode
+#if DEBUG
+Task {
+    let seedManager = SeedDataManager()
+    do {
+        try await seedManager.seedCourtsIfNeeded()
+    } catch {
+        print("Error seeding courts: \(error.localizedDescription)")
     }
+}
+#endif
+```
+
+**Option 2: Create a one-time seed view (for manual triggering)**
+You can create a temporary admin view to trigger seeding:
+
+```swift
+// TemporaryAdminView.swift - Remove after seeding
+import SwiftUI
+
+struct TemporaryAdminView: View {
+    @State private var isSeeding = false
+    @State private var seedMessage = ""
     
-    print("Courts seeded successfully!")
+    var body: some View {
+        VStack {
+            Button("Seed Courts") {
+                Task {
+                    isSeeding = true
+                    let seedManager = SeedDataManager()
+                    do {
+                        try await seedManager.seedCourts()
+                        seedMessage = "Courts seeded successfully!"
+                    } catch {
+                        seedMessage = "Error: \(error.localizedDescription)"
+                    }
+                    isSeeding = false
+                }
+            }
+            .disabled(isSeeding)
+            
+            if !seedMessage.isEmpty {
+                Text(seedMessage)
+                    .padding()
+            }
+        }
+    }
 }
 ```
+
+**Option 3: Seed manually in Firebase Console**
+1. Go to Firebase Console → Firestore Database
+2. Click "Add collection" → Name it "courts"
+3. Add documents manually with fields: `name`, `address`, `latitude`, `longitude`, `createdAt`
+
+**The SeedDataManager includes:**
+- Popular courts from major cities (NYC, LA, Chicago, Philadelphia, Boston, Atlanta, Miami, Houston, San Francisco, Washington DC, Seattle, Portland)
+- Automatic duplicate checking to prevent re-seeding
+- Error handling and progress reporting
+- Proper Firebase Timestamp formatting
+
+**Important**: Only run the seed script once, or use `seedCourtsIfNeeded()` which checks for existing courts before seeding.
 
 ---
 

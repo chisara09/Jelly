@@ -27,188 +27,166 @@ struct GameDetailsView: View {
         game.status == .canceled
     }
     
+    private var headerSection: some View {
+        VStack(spacing: 8) {
+            Text("vs")
+                .font(.title3)
+                .foregroundColor(.secondary)
+            
+            Button(action: {
+                showPlayerProfile = true
+            }) {
+                Text(game.opponentName)
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            if game.status != .completed && game.status != .canceled {
+                statusBadge
+            }
+        }
+        .padding(.top)
+    }
+    
+    private var statusBadge: some View {
+        Text(game.status.displayName)
+            .font(.subheadline)
+            .foregroundColor(game.status == .accepted ? .green : .orange)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                game.status == .accepted ?
+                Color.green.opacity(0.2) :
+                Color.orange.opacity(0.2)
+            )
+            .cornerRadius(8)
+    }
+    
+    private var gameInfoCard: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            InfoRow(icon: "mappin.circle.fill", label: "Court", value: game.courtName, color: .orange)
+            Divider()
+            InfoRow(icon: "location.fill", label: "Address", value: game.courtAddress, color: .blue)
+            Divider()
+            InfoRow(icon: "calendar.circle.fill", label: "Date & Time", value: game.formattedDate, color: .purple)
+            Divider()
+            InfoRow(icon: "basketball.fill", label: "Rules", value: game.rules, color: .green)
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.05), radius: 5)
+        .padding(.horizontal)
+    }
+    
+    @ViewBuilder
+    private var actionButtons: some View {
+        if game.status == .completed {
+            completedGameActions
+        } else if game.status != .canceled {
+            activeGameActions
+        }
+    }
+    
+    private var completedGameActions: some View {
+        VStack(spacing: 12) {
+            if let _ = game.winnerID {
+                VStack(spacing: 8) {
+                    Text("Game Completed")
+                        .font(.headline)
+                    
+                    if game.isConfirmed {
+                        Text("✓ Score Confirmed")
+                            .foregroundColor(.green)
+                    } else {
+                        Text("Awaiting Confirmation")
+                            .foregroundColor(.orange)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(12)
+                
+                if !game.isConfirmed {
+                    Button(action: { showConfirmScore = true }) {
+                        HStack {
+                            Image(systemName: "checkmark.seal.fill")
+                            Text("Confirm / Dispute Score")
+                                .fontWeight(.semibold)
+                        }
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(Color.blue)
+                        .cornerRadius(14)
+                    }
+                }
+            }
+        }
+        .padding(.horizontal)
+    }
+    
+    private var activeGameActions: some View {
+        VStack(spacing: 12) {
+            Button(action: { showChat = true }) {
+                HStack {
+                    Image(systemName: "message.bubble.fill")
+                    Text("Chat with \(game.opponentName)")
+                        .fontWeight(.semibold)
+                }
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .background(Color.blue)
+                .cornerRadius(16)
+            }
+            
+            if isGamePast && game.status == .accepted {
+                Button(action: { showRecordScore = true }) {
+                    HStack {
+                        Image(systemName: "trophy.fill")
+                        Text("Record Score")
+                            .fontWeight(.semibold)
+                    }
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(
+                        LinearGradient(
+                            colors: [.orange, .red],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(16)
+                }
+            }
+            
+            if game.status == .pending || game.status == .accepted {
+                Button(action: { showCancelAlert = true }) {
+                    Text("Cancel Game")
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                }
+            }
+        }
+        .padding(.horizontal)
+    }
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                // Header Section
-                VStack(spacing: 8) {
-                    Text("vs")
-                        .font(.title3)
-                        .foregroundColor(.secondary)
-                    
-                    Button(action: {
-                        showPlayerProfile = true
-                    }) {
-                        Text(game.opponentName)
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.primary)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    if game.status != .completed && game.status != .canceled {
-                        Text(game.status.displayName)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                game.status == .accepted ?
-                                Color.green.opacity(0.2) :
-                                Color.orange.opacity(0.2)
-                            )
-                            .foregroundColor(
-                                game.status == .accepted ? .green : .orange
-                            )
-                            .cornerRadius(8)
-                    }
-                }
-                .padding(.top)
-                
-                // Game Information Card
-                VStack(alignment: .leading, spacing: 20) {
-                    // Court Info
-                    InfoRow(
-                        icon: "mappin.circle.fill",
-                        label: "Court",
-                        value: game.courtName,
-                        color: .orange
-                    )
-                    
-                    Divider()
-                    
-                    // Address
-                    InfoRow(
-                        icon: "location.fill",
-                        label: "Address",
-                        value: game.courtAddress,
-                        color: .blue
-                    )
-                    
-                    Divider()
-                    
-                    // Date & Time
-                    InfoRow(
-                        icon: "calendar.circle.fill",
-                        label: "Date & Time",
-                        value: game.formattedDate,
-                        color: .purple
-                    )
-                    
-                    Divider()
-                    
-                    // Rules
-                    InfoRow(
-                        icon: "basketball.fill",
-                        label: "Rules",
-                        value: game.rules,
-                        color: .green
-                    )
-                }
-                .padding()
-                .background(Color(.systemBackground))
-                .cornerRadius(16)
-                .shadow(color: Color.black.opacity(0.05), radius: 5)
-                .padding(.horizontal)
-                
-                // Action Buttons
-                if game.status == .completed {
-                    VStack(spacing: 12) {
-                        if let winnerID = game.winnerID {
-                            VStack(spacing: 8) {
-                                Text("Game Completed")
-                                    .font(.headline)
-                                
-                                if game.isConfirmed {
-                                    Text("✓ Score Confirmed")
-                                        .foregroundColor(.green)
-                                } else {
-                                    Text("Awaiting Confirmation")
-                                        .foregroundColor(.orange)
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(12)
-                            
-                            if !game.isConfirmed {
-                                Button(action: { showConfirmScore = true }) {
-                                    HStack {
-                                        Image(systemName: "checkmark.seal.fill")
-                                        Text("Confirm / Dispute Score")
-                                            .fontWeight(.semibold)
-                                    }
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 52)
-                                    .background(Color.blue)
-                                    .cornerRadius(14)
-                                }
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                } else if game.status != .canceled {
-                    VStack(spacing: 12) {
-                        // Chat Button
-                        Button(action: {
-                            showChat = true
-                        }) {
-                            HStack {
-                                Image(systemName: "message.bubble.fill")
-                                Text("Chat with \(game.opponentName)")
-                                    .fontWeight(.semibold)
-                            }
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(Color.blue)
-                            .cornerRadius(16)
-                        }
-                        
-                        // Record Score Button (only show if game is past)
-                        if isGamePast && game.status == .accepted {
-                            Button(action: {
-                                showRecordScore = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "trophy.fill")
-                                    Text("Record Score")
-                                        .fontWeight(.semibold)
-                                }
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 56)
-                                .background(
-                                    LinearGradient(
-                                        colors: [.orange, .red],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .cornerRadius(16)
-                            }
-                        }
-                        
-                        // Cancel Game Button (if pending or accepted)
-                        if game.status == .pending || game.status == .accepted {
-                            Button(action: {
-                                showCancelAlert = true
-                            }) {
-                                Text("Cancel Game")
-                                    .font(.subheadline)
-                                    .foregroundColor(.red)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 44)
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                }
+                headerSection
+                gameInfoCard
+                actionButtons
                 
                 // Error Message Display
                 if game.status == .disputed {
@@ -256,7 +234,18 @@ struct GameDetailsView: View {
         .alert("Cancel Game", isPresented: $showCancelAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Cancel Game", role: .destructive) {
-                gameManager.updateGameStatus(game.id, status: .canceled)
+                Task {
+                    do {
+                        let gameIdString = game.id.uuidString
+                        try await gameManager.cancelGame(gameId: gameIdString)
+                        await MainActor.run {
+                            dismiss()
+                        }
+                    } catch {
+                        // Handle error
+                        print("Error canceling game: \(error)")
+                    }
+                }
             }
         } message: {
             Text("Are you sure you want to cancel this game?")
@@ -380,21 +369,19 @@ struct RecordScoreView: View {
             (currentUserID, opponentID, myIntScore, opponentIntScore) :
             (opponentID, currentUserID, opponentIntScore, myIntScore)
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            gameManager.recordScore(
-                gameID: game.id,
-                winnerID: winnerID,
-                loserID: loserID,
-                winnerScore: winnerScore,
-                loserScore: loserScore
-            )
-            
-            if let err = gameManager.errorMessage {
-                errorMessage = err
-                isRecording = false
-            } else {
-                isRecording = false
-                dismiss()
+        Task {
+            do {
+                let gameIdString = game.id.uuidString
+                try await gameManager.submitScore(gameId: gameIdString, myScore: myIntScore, opponentScore: opponentIntScore)
+                await MainActor.run {
+                    isRecording = false
+                    dismiss()
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = FirebaseErrorHandler.userFriendlyMessage(for: error)
+                    isRecording = false
+                }
             }
         }
     }

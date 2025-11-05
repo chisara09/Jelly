@@ -98,7 +98,6 @@ struct OtherPlayerProfileView: View {
                             )
                             .cornerRadius(14)
                         }
-                        .disabled(safetyManager.isBlocked(player.id))
                         
                         Button(action: { showChat = true }) {
                             HStack {
@@ -112,7 +111,6 @@ struct OtherPlayerProfileView: View {
                             .background(Color(.systemGray6))
                             .cornerRadius(14)
                         }
-                        .disabled(safetyManager.isBlocked(player.id))
                     }
                     .padding(.horizontal)
                     .padding(.top)
@@ -238,11 +236,19 @@ struct OtherPlayerProfileView: View {
         .alert("Block User", isPresented: $showBlockAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Block", role: .destructive) {
-                if let error = safetyManager.blockUser(player.id) {
-                    errorMessage = error
-                    showError = true
-                } else {
-                    dismiss()
+                Task {
+                    do {
+                        let blockedID = player.id.uuidString
+                        try await safetyManager.blockUser(blockedID: blockedID)
+                        await MainActor.run {
+                            dismiss()
+                        }
+                    } catch {
+                        await MainActor.run {
+                            errorMessage = FirebaseErrorHandler.userFriendlyMessage(for: error)
+                            showError = true
+                        }
+                    }
                 }
             }
         } message: {
@@ -387,6 +393,7 @@ struct ReportUserView: View {
     let playerID: UUID
     let playerName: String
     @State private var selectedReason: ReportReason? = nil
+    @State private var reportDescription: String = ""
     @State private var showConfirmation = false
     @State private var showError = false
     @State private var errorMessage = ""
@@ -453,11 +460,20 @@ struct ReportUserView: View {
     private func submitReport() {
         guard let reason = selectedReason else { return }
         
-        if let error = safetyManager.reportUser(playerID, reason: reason) {
-            errorMessage = error
-            showError = true
-        } else {
-            showConfirmation = true
+        Task {
+            do {
+                let reportedID = playerID.uuidString
+                let description = reportDescription.isEmpty ? reason.rawValue : reportDescription
+                try await safetyManager.reportUser(reportedID: reportedID, reason: reason.rawValue, description: description)
+                await MainActor.run {
+                    showConfirmation = true
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = FirebaseErrorHandler.userFriendlyMessage(for: error)
+                    showError = true
+                }
+            }
         }
     }
 }

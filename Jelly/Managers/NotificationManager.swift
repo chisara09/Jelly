@@ -9,6 +9,8 @@ import Combine
 import Foundation
 import SwiftUI
 import UserNotifications
+import FirebaseFirestore
+import FirebaseAuth
 
 // F-007: Reminders & Notifications – alerts for new challenges, chat, game times
 class NotificationManager: ObservableObject {
@@ -16,6 +18,10 @@ class NotificationManager: ObservableObject {
     @Published var notificationsEnabled = true
     
     static let shared = NotificationManager()
+    
+    private let db = Firestore.firestore()
+    private var messageListener: ListenerRegistration?
+    private var challengeListener: ListenerRegistration?
     
     private init() {
         checkNotificationPermission()
@@ -51,89 +57,219 @@ class NotificationManager: ObservableObject {
     // MARK: - Game Reminders
     
     func scheduleGameReminder(for game: Game, title: String, reminderTime: NotificationReminderTime) {
-        guard notificationsEnabled && isPermissionGranted else {
-            print("Notifications off")
-            return
-        }
-        
-        let content = UNMutableNotificationContent()
-        content.title = "🏀 Game Reminder"
-        content.body = "You have a game vs \(game.opponentName) at \(game.formattedDate)"
-        content.sound = .default
-        content.categoryIdentifier = "GAME_REMINDER"
-        content.userInfo = [
-            "gameID": game.id.uuidString,
-            "type": "game_reminder"
-        ]
-        
         let triggerDate = getTriggerDate(for: game.scheduledDate, reminderTime: reminderTime)
-        guard let calendarTrigger = createCalendarTrigger(date: triggerDate) else {
-            print("Couldn't schedule reminder")
-            return
-        }
         
-        let request = UNNotificationRequest(
-            identifier: "game_reminder_\(game.id.uuidString)",
-            content: content,
-            trigger: calendarTrigger
+        Task {
+            await scheduleNotification(
+                title: "🏀 Game Reminder",
+                body: "You have a game vs \(game.opponentName) at \(game.formattedDate)",
+                identifier: "game_reminder_\(game.id.uuidString)",
+                date: triggerDate,
+                userInfo: [
+                    "gameID": game.id.uuidString,
+                    "type": "game_reminder"
+                ]
+            )
+        }
+    }
+    
+    /// Schedule a game reminder with specific date (for Firestore games)
+    func scheduleGameReminder(gameId: String, gameDate: Date, opponentName: String) async {
+        let reminderDate = gameDate.addingTimeInterval(-3600) // 1 hour before
+        
+        await scheduleNotification(
+            title: "Game Reminder",
+            body: "Your game with \(opponentName) starts in 1 hour!",
+            identifier: "game_reminder_\(gameId)",
+            date: reminderDate,
+            userInfo: ["type": "game_reminder", "gameId": gameId]
         )
-        
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("Failed to schedule reminder: \(error.localizedDescription)")
-            }
-        }
     }
     
     func scheduleNewChallengeNotification(from challengerName: String, gameID: UUID) {
-        guard notificationsEnabled && isPermissionGranted else { return }
-        
-        let content = UNMutableNotificationContent()
-        content.title = "🎯 New Challenge!"
-        content.body = "\(challengerName) has challenged you to a game!"
-        content.sound = .default
-        content.badge = 1
-        content.categoryIdentifier = "NEW_CHALLENGE"
-        content.userInfo = [
-            "gameID": gameID.uuidString,
-            "type": "new_challenge"
-        ]
-        
-        // Send immediately (when received from backend in production)
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-        
-        let request = UNNotificationRequest(
-            identifier: "challenge_\(gameID.uuidString)",
-            content: content,
-            trigger: trigger
-        )
-        
-        UNUserNotificationCenter.current().add(request)
+        Task {
+            await scheduleNotification(
+                title: "🎯 New Challenge!",
+                body: "\(challengerName) has challenged you to a game!",
+                identifier: "challenge_\(gameID.uuidString)",
+                userInfo: [
+                    "gameID": gameID.uuidString,
+                    "type": "new_challenge"
+                ]
+            )
+        }
     }
     
     func scheduleChatNotification(from senderName: String, gameID: UUID, message: String) {
-        guard notificationsEnabled && isPermissionGranted else { return }
+        Task {
+            await scheduleNotification(
+                title: "💬 New Message",
+                body: "\(senderName): \(message)",
+                identifier: "chat_\(gameID.uuidString)_\(UUID().uuidString)",
+                userInfo: [
+                    "gameID": gameID.uuidString,
+                    "type": "chat_message"
+                ]
+            )
+        }
+    }
+    
+    // MARK: - Generic Notification Scheduling
+    
+    /// Generic method to schedule a local notification
+    func scheduleNotification(
+        title: String,
+        body: String,
+        identifier: String,
+        date: Date? = nil,
+        userInfo: [AnyHashable: Any] = [:]
+    ) async {
+        guard notificationsEnabled && isPermissionGranted else {
+            print("Notifications disabled or permission not granted")
+            return
+        }
         
         let content = UNMutableNotificationContent()
-        content.title = "💬 New Message"
-        content.body = "\(senderName): \(message)"
+        content.title = title
+        content.body = body
         content.sound = .default
-        content.categoryIdentifier = "CHAT_MESSAGE"
-        content.userInfo = [
-            "gameID": gameID.uuidString,
-            "type": "chat_message"
-        ]
+        content.userInfo = userInfo
+        content.categoryIdentifier = userInfo["type"] as? String ?? "GENERAL"
         
-        // Send immediately
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        var trigger: UNNotificationTrigger?
         
-        let request = UNNotificationRequest(
-            identifier: "chat_\(gameID.uuidString)_\(UUID().uuidString)",
-            content: content,
-            trigger: trigger
-        )
+        if let date = date, date > Date() {
+            let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: date)
+            trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        } else {
+            // Trigger immediately (0.1 seconds from now)
+            trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+        }
         
-        UNUserNotificationCenter.current().add(request)
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+        
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+        } catch {
+            print("Error scheduling notification: \(error)")
+        }
+    }
+    
+    // MARK: - Firestore Listeners for Real-time Notifications
+    
+    /// Listen to Firestore for new unread messages and show notifications
+    func listenForNewMessages(userId: String) {
+        guard !userId.isEmpty else { return }
+        
+        messageListener?.remove()
+        
+        messageListener = db.collection("messages")
+            .whereField("isRead.\(userId)", isEqualTo: false)
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let documents = snapshot?.documents else {
+                    if let error = error {
+                        print("Error listening to messages: \(error)")
+                    }
+                    return
+                }
+                
+                for doc in documents {
+                    let data = doc.data()
+                    let senderID = data["senderID"] as? String ?? ""
+                    
+                    // Don't notify for messages sent by current user
+                    if senderID == userId {
+                        continue
+                    }
+                    
+                    let senderName = data["senderName"] as? String ?? "Someone"
+                    let text = data["text"] as? String ?? ""
+                    let gameId = data["gameID"] as? String ?? ""
+                    
+                    Task {
+                        await self?.scheduleNotification(
+                            title: "New message from \(senderName)",
+                            body: text,
+                            identifier: "message_\(doc.documentID)",
+                            userInfo: [
+                                "type": "chat_message",
+                                "gameId": gameId,
+                                "messageId": doc.documentID
+                            ]
+                        )
+                    }
+                }
+            }
+    }
+    
+    /// Listen to Firestore for new challenges and show notifications
+    func listenForNewChallenges(userId: String) {
+        guard !userId.isEmpty else { return }
+        
+        challengeListener?.remove()
+        
+        challengeListener = db.collection("games")
+            .whereField("opponentID", isEqualTo: userId)
+            .whereField("status", isEqualTo: "pending")
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let documents = snapshot?.documents else {
+                    if let error = error {
+                        print("Error listening to challenges: \(error)")
+                    }
+                    return
+                }
+                
+                for doc in documents {
+                    let data = doc.data()
+                    let gameId = doc.documentID
+                    let challengerID = data["challengerID"] as? String ?? ""
+                    let createdAt = (data["createdAt"] as? Timestamp)?.dateValue() ?? Date()
+                    
+                    // Only notify for recently created challenges (within last 5 minutes)
+                    // This prevents old challenges from triggering notifications
+                    guard createdAt.timeIntervalSinceNow > -300 else {
+                        continue
+                    }
+                    
+                    // Get challenger name
+                    Task {
+                        do {
+                            let challengerDoc = try await self?.db.collection("profiles")
+                                .document(challengerID)
+                                .getDocument()
+                            
+                            let challengerName = challengerDoc?.data()?["name"] as? String ?? "Someone"
+                            
+                            await self?.scheduleNotification(
+                                title: "New Challenge!",
+                                body: "\(challengerName) has challenged you to a game!",
+                                identifier: "challenge_\(gameId)",
+                                userInfo: [
+                                    "type": "new_challenge",
+                                    "gameId": gameId
+                                ]
+                            )
+                        } catch {
+                            print("Error fetching challenger name: \(error)")
+                        }
+                    }
+                }
+            }
+    }
+    
+    /// Start listening for all real-time notifications
+    func startListening(userId: String) {
+        guard !userId.isEmpty else { return }
+        listenForNewMessages(userId: userId)
+        listenForNewChallenges(userId: userId)
+    }
+    
+    /// Stop all Firestore listeners
+    func stopListening() {
+        messageListener?.remove()
+        messageListener = nil
+        challengeListener?.remove()
+        challengeListener = nil
     }
     
     // MARK: - Helper Methods
@@ -168,8 +304,16 @@ class NotificationManager: ObservableObject {
         )
     }
     
+    func cancelNotification(identifier: String) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
+    }
+    
     func cancelAllGameReminders() {
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+    }
+    
+    deinit {
+        stopListening()
     }
     
     // MARK: - Error Handling

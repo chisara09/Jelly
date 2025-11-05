@@ -111,7 +111,10 @@ class AuthenticationManager: ObservableObject {
             
             return nil // Success
         } catch {
-            return error.localizedDescription
+            // Log error for debugging
+            FirebaseErrorHandler.logError(error, context: "signUp")
+            // Return user-friendly error message
+            return FirebaseErrorHandler.userFriendlyMessage(for: error)
         }
     }
     
@@ -132,7 +135,10 @@ class AuthenticationManager: ObservableObject {
             
             return nil // Success
         } catch {
-            return "Check your email or password."
+            // Log error for debugging
+            FirebaseErrorHandler.logError(error, context: "login")
+            // Return user-friendly error message
+            return FirebaseErrorHandler.userFriendlyMessage(for: error)
         }
     }
     
@@ -142,7 +148,10 @@ class AuthenticationManager: ObservableObject {
             currentUser = nil
             isAuthenticated = false
         } catch {
-            authError = error.localizedDescription
+            // Log error for debugging
+            FirebaseErrorHandler.logError(error, context: "logout")
+            // Set user-friendly error message
+            authError = FirebaseErrorHandler.userFriendlyMessage(for: error)
         }
     }
     
@@ -170,8 +179,11 @@ class AuthenticationManager: ObservableObject {
                 self.isAuthenticated = true
             }
         } catch {
+            // Log error for debugging
+            FirebaseErrorHandler.logError(error, context: "loadUserProfile")
             await MainActor.run {
-                self.authError = error.localizedDescription
+                // Set user-friendly error message
+                self.authError = FirebaseErrorHandler.userFriendlyMessage(for: error)
             }
         }
     }

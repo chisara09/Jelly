@@ -158,9 +158,9 @@ struct SignUpView: View {
         isLoading = true
         errorMessage = nil
         
-        // Simulate network delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            let error = authManager.signUp(email: email, password: password, name: name)
+        // Call async signUp function using Task
+        Task { @MainActor in
+            let error = await authManager.signUp(email: email, password: password, name: name)
             
             if let error = error {
                 errorMessage = error

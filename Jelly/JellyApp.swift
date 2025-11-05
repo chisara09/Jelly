@@ -21,6 +21,18 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // Setup notifications
         setupNotifications()
         
+        // Seed initial courts data (debug mode only)
+        #if DEBUG
+        Task {
+            let seedManager = SeedDataManager()
+            do {
+                try await seedManager.seedCourtsIfNeeded()
+            } catch {
+                print("Error seeding courts: \(error.localizedDescription)")
+            }
+        }
+        #endif
+        
         return true
     }
     

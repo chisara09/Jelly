@@ -46,8 +46,8 @@ class LocationManager: NSObject, ObservableObject {
         let snapshot = try await db.collection("courts").getDocuments()
         
         for document in snapshot.documents {
-            guard let data = document.data(),
-                  let name = data["name"] as? String,
+            let data = document.data()
+            guard let name = data["name"] as? String,
                   let address = data["address"] as? String,
                   let latitude = data["latitude"] as? Double,
                   let longitude = data["longitude"] as? Double else {
@@ -132,8 +132,9 @@ class LocationManager: NSObject, ObservableObject {
                 continue
             }
             
-            guard let data = profileDoc.data(),
-                  let location = data["location"] as? [String: Any],
+            let data = profileDoc.data()
+            guard let locationValue = data["location"],
+                  let location = locationValue as? [String: Any],
                   let lat = location["latitude"] as? Double,
                   let lon = location["longitude"] as? Double else {
                 continue
