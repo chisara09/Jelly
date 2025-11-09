@@ -36,35 +36,6 @@
 		74EAABE82EB5269900F9A1CE /* NYC-Location.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "NYC-Location.gpx"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		743093A82EBA7E780067ECB5 /* Exceptions for "Jelly" folder in "JellyTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"dev-files/README.md",
-				Tests/EndToEndTests/EndToEndFirebaseTests.swift,
-				Tests/IntegrationTests/FirebaseEmulatorConfig.swift,
-				Tests/IntegrationTests/FirebaseIntegrationTests.swift,
-				Tests/UnitTests/AuthenticationManagerTests.swift,
-				Tests/UnitTests/GameManagerTests.swift,
-				Tests/UnitTests/StatsManagerTests.swift,
-			);
-			target = 743093982EBA7D2F0067ECB5 /* JellyTests */;
-		};
-		743093B82EBAA5980067ECB5 /* Exceptions for "Jelly" folder in "Jelly" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"dev-files/README.md",
-				Tests/EndToEndTests/EndToEndFirebaseTests.swift,
-				Tests/IntegrationTests/FirebaseEmulatorConfig.swift,
-				Tests/IntegrationTests/FirebaseIntegrationTests.swift,
-				Tests/UnitTests/AuthenticationManagerTests.swift,
-				Tests/UnitTests/GameManagerTests.swift,
-				Tests/UnitTests/StatsManagerTests.swift,
-			);
-			target = 74EAAA122EAE8F9100F9A1CE /* Jelly */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		7430939A2EBA7D2F0067ECB5 /* JellyTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -73,10 +44,6 @@
 		};
 		74EAAA152EAE8F9100F9A1CE /* Jelly */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				743093B82EBAA5980067ECB5 /* Exceptions for "Jelly" folder in "Jelly" target */,
-				743093A82EBA7E780067ECB5 /* Exceptions for "Jelly" folder in "JellyTests" target */,
-			);
 			path = Jelly;
 			sourceTree = "<group>";
 		};
