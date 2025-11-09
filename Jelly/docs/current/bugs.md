@@ -5,4 +5,3 @@
 #5. location set to SF. no way to verify that courts show up as green dots.
 #6. leaderboard keeps changing after refresh. local view either initially empty or shows global view before refresh.
 #7. Sign up includes password but no password in database schema
-#8. courts unable to be found; challenge unable to be sent

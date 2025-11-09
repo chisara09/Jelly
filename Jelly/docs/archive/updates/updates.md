@@ -26,29 +26,29 @@ General updates are summarized at the end.
 5. **ProfileView** ✅ — Current user's personal profile  
    > - ✅ Clicking on any **stat box** navigates to a **history view** (previous matches + outcomes).  
    > - ✅ Remove about section.
-   > - **Status**: COMPLETE - See `/dev-files/updates/PROFILEVIEW-UPDATES-COMPLETE.md`
+   > - **Status**: COMPLETE - See `/Jelly/docs/archive/updates/documentation/PROFILEVIEW-UPDATES-COMPLETE.md`
 
 6. **FindPlayersView** ✅ — Map and nearby player discovery  
    > - ✅ Show **courts as small dots** on the map for clarity.  
    > - ✅ Clicking a court should open **Google Maps** with that location pinned.
-   > - **Status**: COMPLETE - See `/dev-files/updates/FINDPLAYERSVIEW-UPDATES-COMPLETE.md`  
+   > - **Status**: COMPLETE - See `/Jelly/docs/archive/updates/documentation/FINDPLAYERSVIEW-UPDATES-COMPLETE.md`  
 
 7. **LeaderboardView** ✅ — Player rankings and stats overview  
    > - ✅ Add a **toggle button** for **local leaderboard view** to see nearby players' ratings.  
    > - ✅ Include global leaderboard by default.
-   > - **Status**: COMPLETE - See `/dev-files/updates/LEADERBOARDVIEW-UPDATES-COMPLETE.md`  
+   > - **Status**: COMPLETE - See `/Jelly/docs/archive/updates/documentation/LEADERBOARDVIEW-UPDATES-COMPLETE.md`  
 
 8. **ChatView** ✅ — Messaging and chat system  
    > - ✅ Displays all user conversations.  
    > - ✅ Add a **chat icon to the navigation bar** for quick access.  
    > - ✅ Include unread message indicators.
-   > - **Status**: COMPLETE - See `/dev-files/updates/CHATVIEW-UPDATES-COMPLETE.md`
+   > - **Status**: COMPLETE - See `/Jelly/docs/archive/updates/documentation/CHATVIEW-UPDATES-COMPLETE.md`
 
 9. **GameDetailsView** — Match summary and analytics  
 
 10. **NewChallengeView** ✅ — Challenge creation screen  
    > - ✅ When selecting a court, give players the option to select either of their homecourts and a searchbar for other courts.
-   > - **Status**: COMPLETE - See `/dev-files/updates/NEWCHALLENGEVIEW-UPDATES-COMPLETE.md` 
+   > - **Status**: COMPLETE - See `/Jelly/docs/archive/updates/documentation/NEWCHALLENGEVIEW-UPDATES-COMPLETE.md` 
 
 11. **ConfirmScoreView** — Final score submission  
 
@@ -56,7 +56,7 @@ General updates are summarized at the end.
 12. **OtherPlayerProfileView** ✅ — View another user's profile  
    > - ✅ Show player's rating, match history, and mutual games.  
    > - ✅ Option to **send challenge** or **message** directly.
-   > - **Status**: COMPLETE - See `/dev-files/updates/OTHERPLAYERPROFILEVIEW-UPDATES-COMPLETE.md`
+   > - **Status**: COMPLETE - See `/Jelly/docs/archive/updates/documentation/OTHERPLAYERPROFILEVIEW-UPDATES-COMPLETE.md`
 
 ---
 
@@ -64,4 +64,4 @@ General updates are summarized at the end.
 
 - ✅ **Remove player levels** (e.g., "Advanced," "Intermediate").  
   → Use **numerical ratings** exclusively to represent skill.
-  > - **Status**: COMPLETE - See `/dev-files/updates/GENERAL-APP-WIDE-UPDATES-COMPLETE.md`
+  > - **Status**: COMPLETE - See `/Jelly/docs/archive/updates/documentation/GENERAL-APP-WIDE-UPDATES-COMPLETE.md`
