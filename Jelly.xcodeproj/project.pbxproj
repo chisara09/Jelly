@@ -40,6 +40,7 @@
 		743093A82EBA7E780067ECB5 /* Exceptions for "Jelly" folder in "JellyTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"dev-files/README.md",
 				Tests/EndToEndTests/EndToEndFirebaseTests.swift,
 				Tests/IntegrationTests/FirebaseEmulatorConfig.swift,
 				Tests/IntegrationTests/FirebaseIntegrationTests.swift,
@@ -52,6 +53,7 @@
 		743093B82EBAA5980067ECB5 /* Exceptions for "Jelly" folder in "Jelly" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"dev-files/README.md",
 				Tests/EndToEndTests/EndToEndFirebaseTests.swift,
 				Tests/IntegrationTests/FirebaseEmulatorConfig.swift,
 				Tests/IntegrationTests/FirebaseIntegrationTests.swift,

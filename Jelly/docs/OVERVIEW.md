@@ -4,7 +4,7 @@ Use this folder to quickly find the references that matter for the current devel
 
 - `current/`
   - Short lists and active checklists that guide what is happening right now.
-  - Start here for open bugs, sprint focus, and the lightweight dev guide.
+  - `bug-list.md` tracks open issues, while `dev-guide.md` summarizes active priorities.
 - `archive/`
   - Detailed background material, including the full requirements, backend plans, audits, and historical update logs.
   - `archive/instructions/` contains the original build and backend documentation.
