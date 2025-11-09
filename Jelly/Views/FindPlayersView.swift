@@ -16,12 +16,8 @@ struct FindPlayersView: View {
         span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
     )
     
-    // Mock courts
-    @State private var courts: [Court] = [
-        Court(name: "Central Park Courts", address: "Central Park, NYC", latitude: 40.785091, longitude: -73.968285),
-        Court(name: "Brooklyn Heights Courts", address: "Brooklyn, NYC", latitude: 40.6960, longitude: -73.9967),
-        Court(name: "Harlem Courts", address: "Harlem, NYC", latitude: 40.8116, longitude: -73.9465)
-    ]
+    // Mock courts (synced with seed data) – replace with Firestore query when backend is ready.
+    @State private var courts: [Court] = CourtCatalog.defaultCourts
     
     // Mock nearby players
     @State private var players: [NearbyPlayer] = [

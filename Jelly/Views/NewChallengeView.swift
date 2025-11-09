@@ -109,7 +109,18 @@ struct NewChallengeView: View {
                 
                 // Get court ID - if selectedCourt exists, use its ID, otherwise create a temporary one
                 // In production, you'd want to ensure the court exists in Firestore first
-                let courtID = selectedCourt?.id.uuidString ?? UUID().uuidString
+                let courtID: String
+                if let existingCourt = selectedCourt {
+                    courtID = existingCourt.id
+                } else if !courtName.isEmpty,
+                          let catalogCourt = CourtCatalog.defaultCourts.first(where: { $0.name == courtName }) {
+                    courtID = catalogCourt.id
+                } else {
+                    // Fall back to a sanitized court name to keep request valid.
+                    courtID = courtName.lowercased()
+                        .replacingOccurrences(of: "[^a-z0-9]+", with: "-", options: .regularExpression)
+                        .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+                }
                 
                 let gameId = try await gameManager.createChallenge(
                     opponentID: opponentID,
@@ -145,17 +156,7 @@ struct CourtSelectionView: View {
     
     @State private var searchText = ""
     
-    // Mock courts data (in production, fetch from database)
-    @State private var courts: [Court] = [
-        Court(name: "Central Park Courts", address: "Central Park, NYC", latitude: 40.785091, longitude: -73.968285),
-        Court(name: "Brooklyn Heights Courts", address: "Brooklyn, NYC", latitude: 40.6960, longitude: -73.9967),
-        Court(name: "Harlem Courts", address: "Harlem, NYC", latitude: 40.8116, longitude: -73.9465),
-        Court(name: "Chelsea Piers", address: "Chelsea, NYC", latitude: 40.7489, longitude: -74.0090),
-        Court(name: "Riverside Park Courts", address: "Upper West Side, NYC", latitude: 40.7956, longitude: -73.9719),
-        Court(name: "McCarren Park", address: "Williamsburg, Brooklyn", latitude: 40.7197, longitude: -73.9516),
-        Court(name: "Tompkins Square Park", address: "East Village, NYC", latitude: 40.7264, longitude: -73.9818),
-        Court(name: "Fort Greene Park", address: "Fort Greene, Brooklyn", latitude: 40.6925, longitude: -73.9742)
-    ]
+    private let courts: [Court] = CourtCatalog.defaultCourts
     
     // Filter courts based on search text
     var filteredCourts: [Court] {

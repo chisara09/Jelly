@@ -280,17 +280,10 @@ final class LeaderboardManager: ObservableObject {
     }
     
     private func randomCourtWithLocation() -> (name: String, latitude: Double, longitude: Double) {
-        let courts = [
-            ("Central Park Courts", 40.7829, -73.9654),
-            ("Brooklyn Heights", 40.6961, -73.9969),
-            ("Harlem Rucker Park", 40.8303, -73.9389),
-            ("Queensbridge Courts", 40.7575, -73.9486),
-            ("Sunset Park", 40.6564, -74.0106),
-            ("Prospect Park", 40.6602, -73.9690),
-            ("Riverside Courts", 40.7957, -73.9712),
-            ("Chelsea Piers", 40.7467, -74.0073)
-        ]
-        return courts.randomElement() ?? ("Local Court", 40.7580, -73.9855)
+        if let court = CourtCatalog.defaultCourts.randomElement() {
+            return (court.name, court.latitude, court.longitude)
+        }
+        return ("Local Court", 40.7580, -73.9855)
     }
 }
 

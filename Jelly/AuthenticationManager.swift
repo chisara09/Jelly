@@ -31,6 +31,8 @@ class AuthenticationManager: ObservableObject {
     
     private var authStateListener: AuthStateDidChangeListenerHandle?
     private let db = Firestore.firestore()
+    private let seedManager = SeedDataManager()
+    private var hasSeededCourts = false
     
     init() {
         // Listen for auth state changes
@@ -104,7 +106,11 @@ class AuthenticationManager: ObservableObject {
                 "lastGameDate": Timestamp(date: Date())
             ]
             
-            try await db.collection("stats").document(userId).setData(statsData)
+            do {
+                try await db.collection("stats").document(userId).setData(statsData)
+            } catch let nsError as NSError where nsError.domain == FirestoreErrorDomain && nsError.code == FirestoreErrorCode.permissionDenied.rawValue {
+                FirebaseErrorHandler.logError(nsError, context: "signUp - stats permission")
+            }
             
             // Load user profile
             await loadUserProfile(firebaseUser: authResult.user)
@@ -178,6 +184,10 @@ class AuthenticationManager: ObservableObject {
                 )
                 self.isAuthenticated = true
             }
+            
+            #if DEBUG
+            await seedCourtsIfNeeded()
+            #endif
         } catch {
             // Log error for debugging
             FirebaseErrorHandler.logError(error, context: "loadUserProfile")
@@ -187,6 +197,19 @@ class AuthenticationManager: ObservableObject {
             }
         }
     }
+    
+    #if DEBUG
+    private func seedCourtsIfNeeded() async {
+        guard !hasSeededCourts else { return }
+        hasSeededCourts = true
+        
+        do {
+            try await seedManager.seedCourtsIfNeeded()
+        } catch {
+            FirebaseErrorHandler.logError(error, context: "seedCourts")
+        }
+    }
+    #endif
     
     deinit {
         if let listener = authStateListener {

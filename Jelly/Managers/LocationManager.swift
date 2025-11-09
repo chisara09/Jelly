@@ -54,11 +54,8 @@ class LocationManager: NSObject, ObservableObject {
                 continue
             }
             
-            // Convert String ID to UUID for Court model
-            let courtId = UUID(uuidString: document.documentID) ?? UUID()
-            
             let court = Court(
-                id: courtId,
+                id: document.documentID,
                 name: name,
                 address: address,
                 latitude: latitude,

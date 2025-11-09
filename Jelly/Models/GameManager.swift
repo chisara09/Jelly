@@ -62,7 +62,19 @@ class GameManager: ObservableObject {
             }
             
             // Get court info
-            let courtDoc = try await db.collection("courts").document(courtID).getDocument()
+            var courtDoc = try await db.collection("courts").document(courtID).getDocument()
+            if !courtDoc.exists, let fallbackCourt = CourtCatalog.courtsByID[courtID] {
+                let courtData: [String: Any] = [
+                    "name": fallbackCourt.name,
+                    "address": fallbackCourt.address,
+                    "latitude": fallbackCourt.latitude,
+                    "longitude": fallbackCourt.longitude,
+                    "createdAt": Timestamp(date: Date())
+                ]
+                try await db.collection("courts").document(courtID).setData(courtData, merge: false)
+                courtDoc = try await db.collection("courts").document(courtID).getDocument()
+            }
+            
             guard courtDoc.exists else {
                 let error = NSError(domain: "Game", code: 404, userInfo: [NSLocalizedDescriptionKey: "Court not found. Please select a different court."])
                 FirebaseErrorHandler.logError(error, context: "createChallenge - court not found")
@@ -70,8 +82,8 @@ class GameManager: ObservableObject {
             }
             
             let courtData = courtDoc.data() ?? [:]
-            let courtName = courtData["name"] as? String ?? "Unknown Court"
-            let courtAddress = courtData["address"] as? String ?? ""
+            let courtName = courtData["name"] as? String ?? CourtCatalog.courtsByID[courtID]?.name ?? "Unknown Court"
+            let courtAddress = courtData["address"] as? String ?? CourtCatalog.courtsByID[courtID]?.address ?? ""
             
             let gameData: [String: Any] = [
                 "challengerID": currentUserID,
