@@ -1,0 +1,13 @@
+{
+  "name": "jelly-scripts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Utility scripts for managing the Jelly Firebase project.",
+  "scripts": {
+    "seed:firestore": "node scripts/seed-firestore.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0"
+  }
+}
+

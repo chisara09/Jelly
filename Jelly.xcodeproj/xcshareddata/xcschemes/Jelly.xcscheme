@@ -63,6 +63,13 @@
             ReferencedContainer = "container:Jelly.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "USE_FIREBASE_EMULATOR"
+            value = "YES"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
       <LocationScenarioReference
          identifier = "New York, NY, USA"
          referenceType = "1">

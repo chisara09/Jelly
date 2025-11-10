@@ -1,0 +1,4 @@
+# Exclude development documentation from app bundle
+dev-files/
+Tests/
+
